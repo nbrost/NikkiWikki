@@ -63,3 +63,7 @@ body {
     height: auto; /* Maintain aspect ratio */
     margin-right: 10px; /* Add space between image and text */
 }
+img {
+    max-width: 100%;
+    height: auto;
+}
