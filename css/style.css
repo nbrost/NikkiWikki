@@ -1,4 +1,7 @@
 body {
+    display: grid;
+    grid-template-rows: 1fr auto; /* 1fr for content to take available space, auto for footer size */
+    min-height: 100vh; /* Full height of the viewport */
     margin: 0;
     padding: 0;
     background-color: #9bb8a1;
