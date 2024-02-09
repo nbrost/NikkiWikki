@@ -67,6 +67,6 @@ body {
     margin-right: 10px; /* Add space between image and text */
 }
 img {
-    max-width: 100%;
+    max-width: 80%;
     height: auto;
 }
