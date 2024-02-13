@@ -70,3 +70,23 @@ img {
     max-width: 80%;
     height: auto;
 }
+
+#floating-button {
+    position: fixed;
+    top: 10px; /* Distance from the top of the viewport */
+    right: 10px; /* Distance from the right of the viewport */
+    display: flex;
+    align-items: center;
+    background-color: #f04; /* Button background color */
+    color: #fff; /* Text color */
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+#floating-button img {
+    margin-right: 5px;
+    width: 20px; /* Adjust image size as needed */
+    height: auto;
+}
