@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>404 Not Found</title>
-<link rel="stylesheet" href="https://nikkiwikkiwigglebum.com/css/style.css">
 <style>
     body, html {
         height: 100%;
@@ -42,6 +41,25 @@
     }
     a:hover {
         text-decoration: underline;
+    }
+    #floating-button {
+        position: fixed;
+        top: 10px; /* Distance from the top of the viewport */
+        left: 10px; /* Distance from the right of the viewport */
+        display: flex;
+        align-items: center;
+        background-color: rgb(196, 105, 196); /* Button background color */
+        color: #fff; /* Text color */
+        padding: 5px 10px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 16px;
+    }
+
+    #floating-button img {
+        margin-right: 5px;
+        width: 40px; /* Adjust image size as needed */
+        height: auto;
     }
 </style>
 </head>
