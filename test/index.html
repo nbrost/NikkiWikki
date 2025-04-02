@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anniversary Date Generator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff5f5;
+            color: #333;
+        }
+        h1 {
+            color: #d23669;
+            text-align: center;
+        }
+        .category-selector {
+            margin: 20px 0;
+        }
+        .filters {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        .filter-group h3 {
+            margin-bottom: 8px;
+            color: #d23669;
+        }
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .filter-option {
+            padding: 5px 10px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .filter-option.selected {
+            background-color: #d23669;
+            color: white;
+            border-color: #d23669;
+        }
+        button {
+            background-color: #d23669;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+        }
+        button:hover {
+            background-color: #a51c4a;
+        }
+        .results {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .result-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-category {
+            font-weight: bold;
+            color: #d23669;
+        }
+        .result-name {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+        .result-description {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Our Anniversary Date Generator</h1>
+    
+    <div class="category-selector">
+        <h2>Select Categories:</h2>
+        <div id="categories" class="filter-options"></div>
+    </div>
+    
+    <div class="filters">
+        <h2>Filters:</h2>
+        <div id="filter-container"></div>
+    </div>
+    
+    <button id="generate-btn">Generate Date Plan</button>
+    
+    <div id="results" class="results"></div>
+
+    <script>
+        // Your JSON data would go here (or loaded from a separate file)
+        const dateData = {
+            "categories": {
+                "dinner": {
+                "name": "Dinner",
+                "filters": {
+                    "time": ["lunch", "dinner", "late-night"],
+                    "area": ["downtown", "midtown", "eastside", "westside"],
+                    "cuisine": ["italian", "mexican", "asian", "american", "french"],
+                    "price": ["$", "$$", "$$$", "$$$$"],
+                    "vibe": ["romantic", "casual", "trendy", "cozy"]
+                },
+                "options": [
+                    {
+                    "name": "La Bella Vita",
+                    "description": "Authentic Italian with candlelit tables",
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["downtown"],
+                        "cuisine": ["italian"],
+                        "price": ["$$$"],
+                        "vibe": ["romantic"]
+                    }
+                    },
+                    {
+                    "name": "Taco Fiesta",
+                    "description": "Fun Mexican spot with great margaritas",
+                    "filters": {
+                        "time": ["lunch", "dinner"],
+                        "area": ["eastside"],
+                        "cuisine": ["mexican"],
+                        "price": ["$$"],
+                        "vibe": ["casual", "trendy"]
+                    }
+                    }
+                ]
+                },
+                "activity": {
+                "name": "Activity",
+                "filters": {
+                    "time": ["morning", "afternoon", "evening", "anytime"],
+                    "area": ["downtown", "midtown", "eastside", "westside", "outdoors"],
+                    "type": ["active", "cultural", "relaxing", "adventurous"],
+                    "season": ["summer", "winter", "spring", "fall", "any"]
+                },
+                "options": [
+                    {
+                    "name": "Art Museum",
+                    "description": "Explore the new contemporary art exhibit",
+                    "filters": {
+                        "time": ["afternoon"],
+                        "area": ["midtown"],
+                        "type": ["cultural"],
+                        "season": ["any"]
+                    }
+                    },
+                    {
+                    "name": "Hiking Trail",
+                    "description": "Scenic 2-mile hike with waterfall views",
+                    "filters": {
+                        "time": ["morning", "afternoon"],
+                        "area": ["outdoors"],
+                        "type": ["active", "adventurous"],
+                        "season": ["spring", "summer", "fall"]
+                    }
+                    }
+                ]
+                },
+                "drinks": {
+                "name": "Drinks",
+                "filters": {
+                    "time": ["afternoon", "evening", "late-night"],
+                    "area": ["downtown", "midtown", "eastside", "westside"],
+                    "type": ["cocktails", "wine", "beer", "coffee"],
+                    "vibe": ["romantic", "lively", "speakeasy", "rooftop"]
+                },
+                "options": [
+                    {
+                    "name": "The Velvet Lounge",
+                    "description": "Classic cocktails in a speakeasy atmosphere",
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["downtown"],
+                        "type": ["cocktails"],
+                        "vibe": ["speakeasy", "romantic"]
+                    }
+                    },
+                    {
+                    "name": "Sunset Rooftop Bar",
+                    "description": "Amazing city views at golden hour",
+                    "filters": {
+                        "time": ["afternoon", "evening"],
+                        "area": ["westside"],
+                        "type": ["cocktails", "wine"],
+                        "vibe": ["rooftop", "romantic"]
+                    }
+                    }
+                ]
+                }
+            }
+        };
+
+        // DOM elements
+        const categoriesContainer = document.getElementById('categories');
+        const filterContainer = document.getElementById('filter-container');
+        const generateBtn = document.getElementById('generate-btn');
+        const resultsContainer = document.getElementById('results');
+
+        // State
+        let selectedCategories = [];
+        let selectedFilters = {};
+
+        // Initialize the app
+        function init() {
+            renderCategorySelectors();
+            generateBtn.addEventListener('click', generateDatePlan);
+        }
+
+        // Render category selection checkboxes
+        function renderCategorySelectors() {
+            categoriesContainer.innerHTML = '';
+            
+            for (const [key, category] of Object.entries(dateData.categories)) {
+                const div = document.createElement('div');
+                div.className = 'filter-option';
+                div.textContent = category.name;
+                div.dataset.category = key;
+                
+                div.addEventListener('click', () => {
+                    div.classList.toggle('selected');
+                    
+                    if (div.classList.contains('selected')) {
+                        selectedCategories.push(key);
+                        renderFilters();
+                    } else {
+                        selectedCategories = selectedCategories.filter(cat => cat !== key);
+                        renderFilters();
+                    }
+                });
+                
+                categoriesContainer.appendChild(div);
+            }
+        }
+
+        // Render filters based on selected categories
+        function renderFilters() {
+            filterContainer.innerHTML = '';
+            selectedFilters = {};
+            
+            if (selectedCategories.length === 0) return;
+            
+            // Collect all unique filters from selected categories
+            const allFilters = {};
+            
+            selectedCategories.forEach(catKey => {
+                const category = dateData.categories[catKey];
+                
+                for (const [filterKey, filterOptions] of Object.entries(category.filters)) {
+                    if (!allFilters[filterKey]) {
+                        allFilters[filterKey] = new Set();
+                    }
+                    
+                    filterOptions.forEach(option => allFilters[filterKey].add(option));
+                }
+            });
+            
+            // Render each filter group
+            for (const [filterKey, filterOptions] of Object.entries(allFilters)) {
+                const filterGroup = document.createElement('div');
+                filterGroup.className = 'filter-group';
+                
+                const title = document.createElement('h3');
+                title.textContent = filterKey.charAt(0).toUpperCase() + filterKey.slice(1);
+                filterGroup.appendChild(title);
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'filter-options';
+                
+                Array.from(filterOptions).forEach(option => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'filter-option';
+                    optionEl.textContent = option;
+                    optionEl.dataset.filterKey = filterKey;
+                    optionEl.dataset.option = option;
+                    
+                    optionEl.addEventListener('click', () => {
+                        optionEl.classList.toggle('selected');
+                        
+                        if (!selectedFilters[filterKey]) {
+                            selectedFilters[filterKey] = new Set();
+                        }
+                        
+                        if (optionEl.classList.contains('selected')) {
+                            selectedFilters[filterKey].add(option);
+                        } else {
+                            selectedFilters[filterKey].delete(option);
+                            
+                            if (selectedFilters[filterKey].size === 0) {
+                                delete selectedFilters[filterKey];
+                            }
+                        }
+                    });
+                    
+                    optionsContainer.appendChild(optionEl);
+                });
+                
+                filterGroup.appendChild(optionsContainer);
+                filterContainer.appendChild(filterGroup);
+            }
+        }
+
+        // Generate a date plan based on selections
+        function generateDatePlan() {
+            resultsContainer.style.display = 'none';
+            resultsContainer.innerHTML = '';
+            
+            if (selectedCategories.length === 0) {
+                alert('Please select at least one category');
+                return;
+            }
+            
+            const results = [];
+            
+            selectedCategories.forEach(catKey => {
+                const category = dateData.categories[catKey];
+                let eligibleOptions = [...category.options];
+                
+                // Apply filters
+                for (const [filterKey, selectedOptions] of Object.entries(selectedFilters)) {
+                    eligibleOptions = eligibleOptions.filter(option => {
+                        // If the option doesn't have this filter, skip it
+                        if (!option.filters[filterKey]) return true;
+                        
+                        // Check if any of the selected options match the option's filters
+                        return Array.from(selectedOptions).some(selectedOption => 
+                            option.filters[filterKey].includes(selectedOption)
+                        );
+                    });
+                }
+                
+                if (eligibleOptions.length > 0) {
+                    // Randomly select one
+                    const selectedOption = eligibleOptions[Math.floor(Math.random() * eligibleOptions.length)];
+                    results.push({
+                        category: category.name,
+                        name: selectedOption.name,
+                        description: selectedOption.description
+                    });
+                }
+            });
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p>No options match your filters. Try being less specific!</p>';
+            } else {
+                results.forEach(result => {
+                    const resultEl = document.createElement('div');
+                    resultEl.className = 'result-item';
+                    
+                    const categoryEl = document.createElement('div');
+                    categoryEl.className = 'result-category';
+                    categoryEl.textContent = result.category;
+                    
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'result-name';
+                    nameEl.textContent = result.name;
+                    
+                    const descEl = document.createElement('div');
+                    descEl.className = 'result-description';
+                    descEl.textContent = result.description;
+                    
+                    resultEl.appendChild(categoryEl);
+                    resultEl.appendChild(nameEl);
+                    resultEl.appendChild(descEl);
+                    
+                    resultsContainer.appendChild(resultEl);
+                });
+            }
+            
+            resultsContainer.style.display = 'block';
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
