@@ -3,140 +3,155 @@
 <head>
     <title>Anniversary Date Generator</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff5f5;
-            color: #333;
-        }
-        h1 {
-            color: #d23669;
-            text-align: center;
-        }
-        .category-selector {
-            margin: 20px 0;
-        }
-        .filters {
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .filter-group {
-            margin-bottom: 15px;
-        }
-        .filter-group h3 {
-            margin-bottom: 8px;
-            color: #d23669;
-        }
-        .filter-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .filter-option {
-            padding: 5px 10px;
-            background-color: #f8f8f8;
-            border: 1px solid #ddd;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .filter-option.selected {
-            background-color: #d23669;
-            color: white;
-            border-color: #d23669;
-        }
-        button {
-            background-color: #d23669;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            display: block;
-            margin: 20px auto;
-        }
-        button:hover {
-            background-color: #a51c4a;
-        }
-        .results {
-            display: none;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .result-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        .result-item:last-child {
-            border-bottom: none;
-        }
-        .result-category {
-            font-weight: bold;
-            color: #d23669;
-        }
-        .result-name {
-            font-size: 18px;
-            margin: 5px 0;
-        }
-        .result-description {
-            color: #666;
-            font-size: 14px;
-        }
-        .result-address {
-            font-size: 12px;
-            color: #666;
-        }
-        .result-filters {
-            margin: 10px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .filters-title {
-            width: 100%;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .filter-tag {
-            display: inline-block;
-            padding: 4px 8px;
-            background-color: #f0f0f0;
-            border-radius: 12px;
-            font-size: 0.8em;
-            color: #333;
-        }
-        
-        /* Optional: Different colors for different filter types */
-        .filter-time {
-            background-color: #ffe0b2;
-        }
-        
-        .filter-area {
-            background-color: #c8e6c9;
-        }
-        
-        .filter-type {
-            background-color: #bbdefb;
-        }
-        
-        .filter-vibe {
-            background-color: #e1bee7;
-        }
-        
-        .filter-patio {
-            background-color: #ffccbc;
-        }
+    body {
+        font-family: 'Arial', sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5fff5; /* Light green background */
+        color: #333;
+        line-height: 1.6;
+    }
+    h1 {
+        color: #2e7d32; /* Deep green */
+        text-align: center;
+        border-bottom: 2px solid #81c784; /* Medium green */
+        padding-bottom: 10px;
+    }
+    .category-selector {
+        margin: 20px 0;
+    }
+    .filters {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        border: 1px solid #c8e6c9; /* Light green border */
+    }
+    .filter-group {
+        margin-bottom: 15px;
+    }
+    .filter-group h3 {
+        margin-bottom: 8px;
+        color: #388e3c; /* Medium-dark green */
+    }
+    .filter-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .filter-option {
+        padding: 5px 10px;
+        background-color: #e8f5e9; /* Very light green */
+        border: 1px solid #a5d6a7; /* Light green */
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    .filter-option.selected {
+        background-color: #2e7d32; /* Deep green */
+        color: white;
+        border-color: #1b5e20; /* Dark green */
+    }
+    button {
+        background-color: #43a047; /* Medium green */
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        display: block;
+        margin: 20px auto;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #2e7d32; /* Darker green */
+    }
+    .results {
+        display: none;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border: 1px solid #c8e6c9; /* Light green border */
+    }
+    .result-item {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e8f5e9; /* Very light green */
+    }
+    .result-item:last-child {
+        border-bottom: none;
+    }
+    .result-category {
+        font-weight: bold;
+        color: #388e3c; /* Medium-dark green */
+    }
+    .result-name {
+        font-size: 18px;
+        margin: 5px 0;
+        color: #1b5e20; /* Dark green */
+    }
+    .result-description {
+        color: #666;
+        font-size: 14px;
+    }
+    .result-address {
+        font-size: 12px;
+        color: #666;
+    }
+    .result-filters {
+        margin: 10px 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .filters-title {
+        width: 100%;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #2e7d32; /* Deep green */
+    }
+
+    .filter-tag {
+        display: inline-block;
+        padding: 4px 8px;
+        background-color: #e8f5e9; /* Very light green */
+        border-radius: 12px;
+        font-size: 0.8em;
+        color: #1b5e20; /* Dark green */
+        border: 1px solid #a5d6a7; /* Light green */
+    }
+
+    /* Different colors for different filter types */
+    .filter-time {
+        background-color: #dcedc8; /* Pale green */
+        border-color: #aed581;
+    }
+
+    .filter-area {
+        background-color: #c8e6c9; /* Light green */
+        border-color: #81c784;
+    }
+
+    .filter-type {
+        background-color: #b2dfdb; /* Teal green */
+        border-color: #4db6ac;
+    }
+
+    .filter-vibe {
+        background-color: #c5e1a5; /* Lime green */
+        border-color: #9ccc65;
+    }
+
+    .filter-patio {
+        background-color: #d7ccc8; /* Neutral for contrast */
+        border-color: #a1887f;
+    }
     </style>
 </head>
 <body>
@@ -505,30 +520,289 @@
                 "activity": {
                 "name": "Activity",
                 "filters": {
-                    "time": ["morning", "afternoon", "evening", "anytime"],
-                    "area": ["downtown", "midtown", "eastside", "westside", "outdoors"],
-                    "type": ["active", "cultural", "relaxing", "adventurous"],
-                    "season": ["summer", "winter", "spring", "fall", "any"]
+                    "time": ["morning", "afternoon", "evening"],
+                    "area": ["Downtown", "Whyte Ave", "North", "South", "West", "At Home"],
+                    "season": ["Summer", "Winter", "Spring", "Fall"]
                 },
                 "options": [
                     {
-                    "name": "Art Museum",
-                    "description": "Explore the new contemporary art exhibit",
+                    "name": "Royal Alberta Museum",
+                    "description": "The Royal Alberta Museum is a museum of human and natural history in Downtown Edmonton, Alberta, Canada, located north of City Hall. The museum is the largest in western Canada with more than 7,600 square metres exhibition space and 38,900 square metres in total.",
+                    "address": ["9810 103a Ave NW, Edmonton, AB T5J 0G2"],
                     "filters": {
                         "time": ["afternoon"],
-                        "area": ["midtown"],
-                        "type": ["cultural"],
-                        "season": ["any"]
+                        "area": ["Downtown"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
                     }
                     },
                     {
-                    "name": "Hiking Trail",
-                    "description": "Scenic 2-mile hike with waterfall views",
+                    "name": "TELUS World of Science",
+                    "description": "Telus World of Science Edmonton is a broad-based science centre in Edmonton, Alberta, Canada, operated by the Edmonton Space & Science Foundation",
+                    "address": ["11211 142 St NW, Edmonton, AB T5M 4A1"],
                     "filters": {
-                        "time": ["morning", "afternoon"],
-                        "area": ["outdoors"],
-                        "type": ["active", "adventurous"],
-                        "season": ["spring", "summer", "fall"]
+                        "time": ["afternoon"],
+                        "area": ["West"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Art Gallery of Alberta",
+                    "description": "Located in the heart of downtown Edmonton, the AGA is a vibrant hub for visual arts, learning, and community connection. For 100 years, the AGA has celebrated creativity and cultural exchange, showcasing the rich tapestry of Alberta’s artistic talent alongside groundbreaking international exhibitions.",
+                    "address": ["2 Sir Winston Churchill Square NW, Edmonton, AB T5J 2C1"],
+                    "filters": {
+                        "time": ["afternoon"],
+                        "area": ["Downtown"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Paint Night",
+                    "description": "Get out your paintbrush and unleash your inner artist! Let's have a fun-filled evening of painting, sipping, and socializing.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon","evening","morning"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Escape Room",
+                    "description": "Get ready for an adventure! Work together to solve puzzles and escape the room before time runs out. There are many escape rooms in Edmonton, each with a unique theme and story.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon","evening"],
+                        "area": ["Downtown", "Whyte Ave", "North", "South", "West"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Mini Golf",
+                    "description": "There are a few mini golf courses in Edmonton, each with a unique theme and atmosphere. There are 2 in WEM and another off Gateway BLVD.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon","evening"],
+                        "area": ["South", "West"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Axe Throwing (Axe Monkeys)",
+                    "description": "Try not to chop a finger off 🤪",
+                    "address": ["13931 156 St NW, Edmonton, AB T5V 0C8"],
+                    "filters": {
+                        "time": ["afternoon","evening"],
+                        "area": ["North"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Manual driving lessons",
+                    "description": "Take the ol' country Jetta out for a rip ther bud",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","afternoon","evening"],
+                        "area": ["Downtown", "Whyte Ave", "North", "South", "West"],
+                        "season": ["Summer", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Climbing gym",
+                    "description": "Try your luck at being spiderman. Maybe give Tom a shout and invite him to join.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon","evening"],
+                        "area": ["Downtown", "South", "West"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "124st Art Gallery Walk",
+                    "description": "Pretend we have art money and walk around the 124st art gallery walk. Maybe stop for a coffee at one of the shops nearby.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon"],
+                        "area": ["Downtown"],
+                        "season": ["Summer", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Speeders",
+                    "description": "Do your best not to be the slowest lil frog in a kart for once.",
+                    "address": ["12808 170 St NW Unit 16, Edmonton, AB T5V 0A6"],
+                    "filters": {
+                        "time": ["afternoon", "evening"],
+                        "area": ["North"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Activate!",
+                    "description": "Run around and dodge lasers and shit",
+                    "address": ["160 Mayfield Common Northwest Unit G010, Edmonton, AB T5P 4B3"],
+                    "filters": {
+                        "time": ["morning", "afternoon", "evening"],
+                        "area": ["South, West"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Dueling Pianos",
+                    "description": "Be classy and enjoy some local talent at the Dueling Pianos. Sing along to your favorite songs and enjoy a night of laughter and music.",
+                    "address": ["8217 104 Street NW"],
+                    "filters": {
+                        "time": ["evening"],
+                        "area": ["Whyte Ave"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Elk Island National Park",
+                    "description": "Check out the bison and Northern Lights at Elk Island National Park. It's a great place for a day trip, hiking, and wildlife viewing.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon", "morning"],
+                        "area": [],
+                        "season": ["Summer", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Elk Island National Park",
+                    "description": "Check out the bison and Northern Lights at Elk Island National Park. It's a great place for a day trip, hiking, and wildlife viewing.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon", "morning"],
+                        "area": [],
+                        "season": ["Summer", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Hot Girl Bread Night",
+                    "description": "Spend an evening baking bread and drinking wine. You can swap bread for brownies or any other baked goodies.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "A DIY tarot night",
+                    "description": "Did you know you can read your own tarot — or host a friend or two to do it together? Though the experts are certainly more skilled at deep interpretation, you don’t need to be a professional reader. After all, tarot isn’t magic; it actually started as a card game, and today serves primarily as a tool for reflection and self-exploration. So if you’ve been wanting to connect with your intuition, set some new intentions or get a fresh perspective, a DIY tarot night could be just the experience you’re after.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "A DIY wine/beer fest together or with friends",
+                    "description": "Everyone brings their favourite wine and or beer and we laugh and have fun together.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "The ultimate de-stressing night",
+                    "description": "Everyone is too stressed. Enjoy a night of relaxation with a bubble bath, face masks, and a good book. You can even add some wine or tea to the mix. Go to https://www.cbc.ca/life/wellness/big-night-in-ultimate-guide-to-destressing-1.7465092 for more ideas.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Board Game Tournament",
+                    "description": "A winner takes all tournament. Maybe spice it up with a fun dare on the line.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Short story club",
+                    "description": "Take turns reading short stories to each other and discussing them. You can even pick a theme for the night.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Library or Bookstore Date",
+                    "description": "Spend an afternoon browsing books together, sharing your favorite reads, and maybe even picking out a book for each other. You can also grab a coffee at the bookstore cafe.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["Downtown", "Whyte Ave", "North", "South", "West"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "A preserves night with pals",
+                    "description": "Make pickled eggs idgaf",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "A DIY boudoir photo shoot",
+                    "description": "A fun and sexy way to celebrate your love. You can set up a mini photo shoot at home with some props, candles, and soft lighting. Dress up in your favorite outfits or go for a more intimate look.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Butt painting",
+                    "description": "Get that booty all full of paint and go town on a canvas. You can even make it a competition to see who can create the best masterpiece.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Dress up Party",
+                    "description": "Invite all your friends over for a themed dress-up party. You can choose a theme like '80s, '90s, or even a favorite movie or TV show. Everyone can come dressed up, and you can have fun games and activities related to the theme.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Themed Movie Marathon",
+                    "description": "Pick a theme (80s classics, Oscar winners, etc.), make some popcorn, and create your own home theater experience.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Home Mixology Class",
+                    "description": "Pick up a few bottles of liquor or use what you have and create some new exciting cockatils. Maybe even try your hand at making some original creations.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
                     }
                     }
                 ]
