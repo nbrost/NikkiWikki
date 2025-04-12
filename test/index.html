@@ -164,7 +164,7 @@
                 "name": "Dinner",
                 "filters": {
                     "time": ["brunch ","lunch", "dinner", "late-night"],
-                    "area": ["Downtown", "Whyte Ave", "North", "South", "West"],
+                    "area": ["Downtown", "Whyte Ave", "North", "South", "West", "124st"],
                     "price": ["$", "$$", "$$$", "$$$$"],
                     "vibe": ["romantic", "casual", "trendy", "cozy", "upscale"]
                 },
@@ -753,6 +753,7 @@
                     resultEl.appendChild(categoryEl);
                     resultEl.appendChild(nameEl);
                     resultEl.appendChild(descEl);
+                    resultEl.appendChild(filtersContainer);
 
                     if (result.address) {
                         for (const address of result.address) {
