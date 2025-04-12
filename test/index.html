@@ -95,6 +95,48 @@
             font-size: 12px;
             color: #666;
         }
+        .result-filters {
+            margin: 10px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .filters-title {
+            width: 100%;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .filter-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #f0f0f0;
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: #333;
+        }
+        
+        /* Optional: Different colors for different filter types */
+        .filter-time {
+            background-color: #ffe0b2;
+        }
+        
+        .filter-area {
+            background-color: #c8e6c9;
+        }
+        
+        .filter-type {
+            background-color: #bbdefb;
+        }
+        
+        .filter-vibe {
+            background-color: #e1bee7;
+        }
+        
+        .filter-patio {
+            background-color: #ffccbc;
+        }
     </style>
 </head>
 <body>
@@ -657,7 +699,8 @@
                         category: category.name,
                         name: selectedOption.name,
                         description: selectedOption.description,
-                        address: selectedOption.address
+                        address: selectedOption.address,
+                        filters: selectedOption.filters || {}
                     });
                 }
             });
@@ -680,6 +723,32 @@
                     const descEl = document.createElement('div');
                     descEl.className = 'result-description';
                     descEl.textContent = result.description;
+                        
+                    // Create a container for the filters
+                    const filtersContainer = document.createElement('div');
+                    filtersContainer.className = 'result-filters';
+
+                    const filtersTitle = document.createElement('div');
+                    filtersTitle.className = 'filters-title';
+                    filtersTitle.textContent = 'Features:';
+                    filtersContainer.appendChild(filtersTitle);
+
+                    // Create filter tags for each filter type
+                    for (const [filterKey, filterValues] of Object.entries(result.filters)) {
+                        filterValues.forEach(value => {
+                            const filterTag = document.createElement('span');
+                            filterTag.className = 'filter-tag';
+                            
+                            // Add a class based on the filter type for styling
+                            filterTag.classList.add(`filter-${filterKey}`);
+                            
+                            // Capitalize the first letter of the filter value
+                            const formattedValue = value.charAt(0).toUpperCase() + value.slice(1);
+                            filterTag.textContent = formattedValue;
+                            
+                            filtersContainer.appendChild(filterTag);
+                        });
+                    }
 
                     resultEl.appendChild(categoryEl);
                     resultEl.appendChild(nameEl);
