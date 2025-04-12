@@ -632,10 +632,16 @@
                 if (eligibleOptions.length > 0) {
                     // Randomly select one
                     const selectedOption = eligibleOptions[Math.floor(Math.random() * eligibleOptions.length)];
+                    if (selectedOption.address) {
+                        selectedOption.address = Array.isArray(selectedOption.address) ? selectedOption.address : [selectedOption.address];
+                    } else {
+                        selectedOption.address = [];
+                    }
                     results.push({
                         category: category.name,
                         name: selectedOption.name,
-                        description: selectedOption.description
+                        description: selectedOption.description,
+                        address: selectedOption.address
                     });
                 }
             });
