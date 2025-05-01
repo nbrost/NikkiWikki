@@ -966,20 +966,107 @@
             }
         };
 
+                
+        // Google Sheets configuration
+        const SHEET_ID = '1gs-OVr4tasJG7Fd4MfFG07Gqx_aJJzzITVlPuU7EuzQ';
+        const SHEET_NAMES = {
+            "dinner": "Dinner",
+            "activity": "Activity",
+            "drinks": "Drinks"
+        };
+
         // DOM elements
         const categoriesContainer = document.getElementById('categories');
         const filterContainer = document.getElementById('filter-container');
         const generateBtn = document.getElementById('generate-btn');
         const resultsContainer = document.getElementById('results');
+        const loadingIndicator = document.getElementById('loading-indicator');
 
         // State
         let selectedCategories = [];
         let selectedFilters = {};
+        let sheetDataLoaded = false;
 
         // Initialize the app
-        function init() {
+        async function init() {
             renderCategorySelectors();
             generateBtn.addEventListener('click', generateDatePlan);
+            
+            // Load data from Google Sheets in the background
+            try {
+                loadingIndicator.style.display = 'block';
+                await loadDataFromSheets();
+                sheetDataLoaded = true;
+                loadingIndicator.style.display = 'none';
+                
+                // If categories are already selected, refresh filters
+                if (selectedCategories.length > 0) {
+                    renderFilters();
+                }
+            } catch (error) {
+                console.error('Error loading data from Google Sheets:', error);
+                loadingIndicator.style.display = 'none';
+                // Continue with just the hardcoded data
+                sheetDataLoaded = true;
+            }
+        }
+
+        
+        async function loadDataFromSheets() {
+        for (const [catKey, sheetName] of Object.entries(SHEET_NAMES)) {
+            try {
+            // Public URL format - no API key needed
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+            const response = await fetch(url);
+            const text = await response.text();
+            const json = JSON.parse(text.substr(47).slice(0, -2));
+            
+            if (json.table && json.table.rows) {
+                processSheetData(catKey, json.table);
+            }
+            } catch (error) {
+            console.error(`Error loading sheet for ${catKey}:`, error);
+            }
+        }
+        }
+
+        // Process sheet data into our format
+        function processSheetData(catKey, rows) {
+            const headers = rows[0].map(h => h.toLowerCase().trim());
+            const options = [];
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+                
+                const option = {
+                    name: row[0] || '',
+                    description: row[1] || '',
+                    address: [],
+                    filters: {}
+                };
+                
+                // Check if address exists (assuming it's column 2 if description is column 1)
+                if (row[2]) {
+                    option.address = row[2].split(';').map(addr => addr.trim());
+                }
+                
+                // Process filters (columns 3 and beyond)
+                for (let j = 3; j < headers.length; j++) {
+                    if (row[j]) {
+                        const filterKey = headers[j];
+                        const filterValues = row[j].split(',').map(v => v.trim().toLowerCase());
+                        option.filters[filterKey] = filterValues;
+                    }
+                }
+                
+                options.push(option);
+            }
+            
+            // Merge with existing options
+            if (dateData.categories[catKey]) {
+                dateData.categories[catKey].options = [...dateData.categories[catKey].options, ...options];
+            }
         }
 
         // Render category selection checkboxes
@@ -1015,19 +1102,22 @@
             
             if (selectedCategories.length === 0) return;
             
-            // Collect all unique filters from selected categories
+            // Collect all unique filters and their options from selected categories
             const allFilters = {};
             
             selectedCategories.forEach(catKey => {
                 const category = dateData.categories[catKey];
                 
-                for (const [filterKey, filterOptions] of Object.entries(category.filters)) {
-                    if (!allFilters[filterKey]) {
-                        allFilters[filterKey] = new Set();
+                // Go through all options to find all possible filters
+                category.options.forEach(option => {
+                    for (const [filterKey, filterValues] of Object.entries(option.filters)) {
+                        if (!allFilters[filterKey]) {
+                            allFilters[filterKey] = new Set();
+                        }
+                        
+                        filterValues.forEach(value => allFilters[filterKey].add(value));
                     }
-                    
-                    filterOptions.forEach(option => allFilters[filterKey].add(option));
-                }
+                });
             });
             
             // Render each filter group
@@ -1077,6 +1167,11 @@
 
         // Generate a date plan based on selections
         function generateDatePlan() {
+            if (!sheetDataLoaded) {
+                alert('Data is still loading from Google Sheets. Please try again in a moment.');
+                return;
+            }
+            
             resultsContainer.style.display = 'none';
             resultsContainer.innerHTML = '';
             
@@ -1172,7 +1267,7 @@
                     resultEl.appendChild(descEl);
                     resultEl.appendChild(filtersContainer);
 
-                    if (result.address) {
+                    if (result.address && result.address.length > 0) {
                         for (const address of result.address) {
                             const addressEl = document.createElement('div');
                             addressEl.className = 'result-address';
