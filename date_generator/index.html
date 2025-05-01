@@ -1026,51 +1026,56 @@
 
         
         async function loadDataFromSheets() {
-        for (const [catKey, sheetName] of Object.entries(SHEET_NAMES)) {
-            try {
-            // Public URL format - no API key needed
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-            const response = await fetch(url);
-            const text = await response.text();
-            const json = JSON.parse(text.substr(47).slice(0, -2));
-            
-            if (json.table && json.table.rows) {
-                processSheetData(catKey, json.table);
+            for (const [catKey, sheetName] of Object.entries(SHEET_NAMES)) {
+                try {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // Extract JSON from the response (removing the wrapper)
+                const jsonStr = text.match(/google\.visualization\.Query\.setResponse\((.*)\);/)[1];
+                const json = JSON.parse(jsonStr);
+                
+                if (json.table && json.table.rows) {
+                    processSheetData(catKey, json.table);
+                }
+                } catch (error) {
+                console.error(`Error loading sheet for ${catKey}:`, error);
+                }
             }
-            } catch (error) {
-            console.error(`Error loading sheet for ${catKey}:`, error);
-            }
-        }
         }
 
-        // Process sheet data into our format
-        function processSheetData(catKey, rows) {
-            const headers = rows[0].map(h => h.toLowerCase().trim());
+        function processSheetData(catKey, tableData) {
+            // Extract headers from first row
+            const headerRow = tableData.rows[0];
+            const headers = headerRow.c.map(cell => cell.v.toLowerCase().trim());
+            
             const options = [];
             
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (!row || row.length === 0) continue;
+            // Start from row 1 (skip header row)
+            for (let i = 1; i < tableData.rows.length; i++) {
+                const row = tableData.rows[i];
+                if (!row.c) continue;
                 
                 const option = {
-                    name: row[0] || '',
-                    description: row[1] || '',
-                    address: [],
-                    filters: {}
+                name: row.c[0]?.v || '',
+                description: row.c[1]?.v || '',
+                address: [],
+                filters: {}
                 };
                 
-                // Check if address exists (assuming it's column 2 if description is column 1)
-                if (row[2]) {
-                    option.address = row[2].split(';').map(addr => addr.trim());
+                // Process address (column 2)
+                if (row.c[2]?.v) {
+                option.address = String(row.c[2].v).split(';').map(addr => addr.trim());
                 }
                 
-                // Process filters (columns 3 and beyond)
+                // Process filters (columns 3+)
                 for (let j = 3; j < headers.length; j++) {
-                    if (row[j]) {
-                        const filterKey = headers[j];
-                        const filterValues = row[j].split(',').map(v => v.trim().toLowerCase());
-                        option.filters[filterKey] = filterValues;
-                    }
+                if (row.c[j]?.v) {
+                    const filterKey = headers[j];
+                    const filterValues = String(row.c[j].v).split(',').map(v => v.trim().toLowerCase());
+                    option.filters[filterKey] = filterValues;
+                }
                 }
                 
                 options.push(option);
@@ -1080,7 +1085,7 @@
             if (dateData.categories[catKey]) {
                 dateData.categories[catKey].options = [...dateData.categories[catKey].options, ...options];
             }
-        }
+            }
 
         // Render category selection checkboxes
         function renderCategorySelectors() {
