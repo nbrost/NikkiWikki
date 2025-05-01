@@ -152,6 +152,12 @@
         background-color: #d7ccc8; /* Neutral for contrast */
         border-color: #a1887f;
     }
+    #loading {
+        text-align: center;
+        font-style: italic;
+        color: #666;
+        padding: 10px;
+    }
     </style>
 </head>
 <body>
@@ -168,6 +174,11 @@
     </div>
     
     <button id="generate-btn">Generate Date Plan</button>
+
+    <!-- Add this simple loading indicator -->
+    <div id="loading" style="display: none; margin: 20px 0;">
+        <p>Loading options...</p>
+    </div>
     
     <div id="results" class="results"></div>
 
@@ -980,7 +991,7 @@
         const filterContainer = document.getElementById('filter-container');
         const generateBtn = document.getElementById('generate-btn');
         const resultsContainer = document.getElementById('results');
-        const loadingIndicator = document.getElementById('loading-indicator');
+        const loadingIndicator = document.getElementById('loading');
 
         // State
         let selectedCategories = [];
@@ -993,6 +1004,7 @@
             generateBtn.addEventListener('click', generateDatePlan);
             
             // Load data from Google Sheets in the background
+            loadingIndicator.style.display = 'block';
             try {
                 loadingIndicator.style.display = 'block';
                 await loadDataFromSheets();
@@ -1009,6 +1021,7 @@
                 // Continue with just the hardcoded data
                 sheetDataLoaded = true;
             }
+            loadingIndicator.style.display = 'none';
         }
 
         
@@ -1167,6 +1180,8 @@
 
         // Generate a date plan based on selections
         function generateDatePlan() {
+            loadingIndicator.style.display = 'block';
+            resultsContainer.style.display = 'none';
             if (!sheetDataLoaded) {
                 alert('Data is still loading from Google Sheets. Please try again in a moment.');
                 return;
@@ -1280,6 +1295,7 @@
                 });
             }
             
+            loadingIndicator.style.display = 'none';
             resultsContainer.style.display = 'block';
         }
 
