@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anniversary Date Generator</title>
+    <style>
+    body {
+        font-family: 'Arial', sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5fff5; /* Light green background */
+        color: #333;
+        line-height: 1.6;
+    }
+    h1 {
+        color: #2e7d32; /* Deep green */
+        text-align: center;
+        border-bottom: 2px solid #81c784; /* Medium green */
+        padding-bottom: 10px;
+    }
+    .category-selector {
+        margin: 20px 0;
+    }
+    .filters {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        border: 1px solid #c8e6c9; /* Light green border */
+    }
+    .filter-group {
+        margin-bottom: 15px;
+    }
+    .filter-group h3 {
+        margin-bottom: 8px;
+        color: #388e3c; /* Medium-dark green */
+    }
+    .filter-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .filter-option {
+        padding: 5px 10px;
+        background-color: #e8f5e9; /* Very light green */
+        border: 1px solid #a5d6a7; /* Light green */
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    .filter-option.selected {
+        background-color: #2e7d32; /* Deep green */
+        color: white;
+        border-color: #1b5e20; /* Dark green */
+    }
+    button {
+        background-color: #43a047; /* Medium green */
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        display: block;
+        margin: 20px auto;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #2e7d32; /* Darker green */
+    }
+    .results {
+        display: none;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border: 1px solid #c8e6c9; /* Light green border */
+    }
+    .result-item {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e8f5e9; /* Very light green */
+    }
+    .result-item:last-child {
+        border-bottom: none;
+    }
+    .result-category {
+        font-weight: bold;
+        color: #388e3c; /* Medium-dark green */
+    }
+    .result-name {
+        font-size: 18px;
+        margin: 5px 0;
+        color: #1b5e20; /* Dark green */
+    }
+    .result-description {
+        color: #666;
+        font-size: 14px;
+    }
+    .result-address {
+        font-size: 12px;
+        color: #666;
+    }
+    .result-filters {
+        margin: 10px 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .filters-title {
+        width: 100%;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #2e7d32; /* Deep green */
+    }
+
+    .filter-tag {
+        display: inline-block;
+        padding: 4px 8px;
+        background-color: #e8f5e9; /* Very light green */
+        border-radius: 12px;
+        font-size: 0.8em;
+        color: #1b5e20; /* Dark green */
+        border: 1px solid #a5d6a7; /* Light green */
+    }
+
+    /* Different colors for different filter types */
+    .filter-time {
+        background-color: #dcedc8; /* Pale green */
+        border-color: #aed581;
+    }
+
+    .filter-area {
+        background-color: #c8e6c9; /* Light green */
+        border-color: #81c784;
+    }
+
+    .filter-type {
+        background-color: #b2dfdb; /* Teal green */
+        border-color: #4db6ac;
+    }
+
+    .filter-vibe {
+        background-color: #c5e1a5; /* Lime green */
+        border-color: #9ccc65;
+    }
+
+    .filter-patio {
+        background-color: #d7ccc8; /* Neutral for contrast */
+        border-color: #a1887f;
+    }
+    </style>
+</head>
+<body>
+    <h1>Our Anniversary Date Generator</h1>
+    
+    <div class="category-selector">
+        <h2>Select Categories:</h2>
+        <div id="categories" class="filter-options"></div>
+    </div>
+    
+    <div class="filters">
+        <h2>Filters:</h2>
+        <div id="filter-container"></div>
+    </div>
+    
+    <button id="generate-btn">Generate Date Plan</button>
+    
+    <div id="results" class="results"></div>
+
+    <script>
+        // Your JSON data would go here (or loaded from a separate file)
+        const dateData = {
+            "categories": {
+                "dinner": {
+                "name": "Dinner",
+                "filters": {
+                    "time": ["brunch ","lunch", "dinner", "late-night"],
+                    "area": ["Downtown", "Whyte Ave", "North", "South", "West", "124st"],
+                    "price": ["$", "$$", "$$$", "$$$$"],
+                    "vibe": ["romantic", "casual", "trendy", "cozy", "upscale"]
+                },
+                "options": [
+                    {
+                    "name": "Fu's Repair Shop",
+                    "description": "Cocktails, Dumplings, Dim Sum, Noodles and More",
+                    "address": ["10524 Jasper Ave, Edmonton, AB T5J 1Z7"],
+                    "filters": {
+                        "time": ["dinner", "late-night"],
+                        "area": ["Downtown"],
+                        "price": ["$$$"],
+                        "vibe": ["casual", "trendy"]
+                    }
+                    },
+                    {
+                    "name": "RGE RD",
+                    "description": "Eat off the beaten path. Inspired by feasts in fields, forests, mountains and oceans",
+                    "address": ["10643 123 St NW, Edmonton, AB T5N 1P2"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["124st"],
+                        "price": ["$$$$"],
+                        "vibe": ["romantic", "upscale"]
+                    }
+                    },
+                    {
+                    "name": "El Mariachi",
+                    "description": "At El Mariachi we take pride in our authentic and unique recipes which will please your taste buds and make you feel like in Mexico. Come for Taco Tuesdays!",
+                    "address": ["10991 A 124 St, Edmonton, AB T5M 0H9"],
+                    "filters": {
+                        "time": ["lunch","dinner"],
+                        "area": ["124st"],
+                        "price": ["$$"],
+                        "vibe": ["casual"]
+                    }
+                    },   
+                    {
+                    "name": "Tiramisu Bistro",
+                    "description": "Casual, colorful Italian spot for pizza, panini & pasta, plus breakfast & coffee.",
+                    "address": ["10750 124 St, Edmonton, AB T5M 0H1"],
+                    "filters": {
+                        "time": ["brunch","lunch","dinner"],
+                        "area": ["124st"],
+                        "price": ["$$$"],
+                        "vibe": ["cozy", "trendy", "romantic"]
+                    }
+                    },     
+                    {
+                    "name": "Saigon Paradise",
+                    "description": "No frills Vietnamese eatery with a menu of traditional dishes, plus delicious Thai and Chinese dishes.",
+                    "address": ["13536 97 St NW, Edmonton, AB T5E 4E2"],
+                    "filters": {
+                        "time": ["lunch","dinner"],
+                        "area": ["North"],
+                        "price": ["$$"],
+                        "vibe": ["casual"]
+                    }
+                    },    
+                    {
+                    "name": "Smokin' Barrels Cocina Latina",
+                    "description": "Urban and Authentic Mexican & Colombian Cuisine in Edmonton",
+                    "address": ["13119 156 St NW, Edmonton, AB T5V 1V2"],
+                    "filters": {
+                        "time": ["lunch","dinner"],
+                        "area": ["North"],
+                        "price": ["$$$"],
+                        "vibe": ["casual", "trendy"]
+                    }
+                    },    
+                    {
+                    "name": "The Bedouins Restaurant",
+                    "description": "Edmonton's Best Arabian/North African Inspired Restaurant",
+                    "address": ["12832 137 Ave NW, Edmonton, AB T6V 1C9"],
+                    "filters": {
+                        "time": ["lunch","dinner"],
+                        "area": ["North"],
+                        "price": ["$$$"],
+                        "vibe": ["casual"]
+                    }
+                    },   
+                    {
+                    "name": "Cố Đô Huế",
+                    "description": "Tasty Little Vietnamese Restaurant in Edmonton, Alberta. We serve authentic Vietnamese food with a twist. Our menu is inspired by the flavors of Huế, Vietnam's ancient capital.",
+                    "address": ["12819 140 Ave NW, Edmonton, AB T6V 1G5","9524 163 St NW, Edmonton, AB T5P 0A9", "6960 76 Ave NW, Edmonton, AB T6B 2R2"],
+                    "filters": {
+                        "time": ["lunch","dinner"],
+                        "area": ["North", "South", "West"],
+                        "price": ["$$"],
+                        "vibe": ["casual"]
+                    }
+                    },  
+                    {
+                    "name": "Black Pearl Seafood Restaurant & Bar",
+                    "description": "Vibrant, maritime-themed eatery offering raw oysters, a range of classic seafood dishes & cocktails.",
+                    "address": ["10132 104 Street NW, Edmonton, AB T5J 0B6"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$$$"],
+                        "vibe": ["trendy", "upscale", "romantic"]
+                    }
+                    },   
+                    {
+                    "name": "Turquaz Kebab House",
+                    "description": "Relaxed Turkish & Lebanese counter serve doling out a variety of kebabs, plus shawarma & hummus.",
+                    "address": ["13310 137 Ave NW, Edmonton, AB T5L 4Z6"],
+                    "filters": {
+                        "time": ["lunch","dinner"],
+                        "area": ["North"],
+                        "price": ["$$"],
+                        "vibe": ["casual"]
+                    }
+                    },
+                    {
+                    "name": "Luna",
+                    "description": "Destination for wide-ranging Mexican comfort food & margaritas served in vibrant surrounds.",
+                    "address": ["9880 63 Ave NW, Edmonton, AB T6E 0G6"],
+                    "filters": {
+                        "time": ["lunch", "dinner"],
+                        "area": ["Whyte Ave", "South"],
+                        "price": ["$$"],
+                        "vibe": ["trendy", "casual", "cozy"]
+                    }
+                    },  
+                    {
+                    "name": "Farrow",
+                    "description": "Farrow was established in 2014. We have been bringing the finest sandwiches, coffee, baked goods, and catering to  since day one. Sourcing the highest quality ingredients and beans, our goal has always been to give our city the finer things in life.",
+                    "address": ["8422 109 St NW, Edmonton, AB T6G 1E2","10240 124 St Suite 6, Edmonton, AB T5N 3W6","10542 Jasper Ave, Edmonton, AB T5J 1Z7"],
+                    "filters": {
+                        "time": ["lunch"],
+                        "area": ["Downtown", "Whyte Ave", "124st"],
+                        "price": ["$$"],
+                        "vibe": ["trendy", "casual"]
+                    }
+                    },  
+                    {
+                    "name": "Hanjan",
+                    "description": "Edmonton's #1 Korean restaurant. Open from lunch to midnights, we specialize in classic Korean comfort food that will satisfy any cravings.",
+                    "address": ["10166 114 St NW, Edmonton, AB T5K 1R7","10536 Whyte Ave NW, Edmonton, AB T6E 2A4","3735 99 St NW, Edmonton, AB T6E 6J7"],
+                    "filters": {
+                        "time": ["lunch"],
+                        "area": ["Downtown", "Whyte Ave", "South"],
+                        "price": ["$$$"],
+                        "vibe": ["trendy"]
+                    }
+                    },     
+                    {
+                    "name": "Vaticano Cucina",
+                    "description": "Vaticano Cucina (Vatican’s Kitchen) is much more than an Italian restaurant. In the spirit of the widely celebrated Vatican City, our restaurant is a place to be delighted by the restaurant’s trademark decor and artisanal fare, rooted in Italian tradition.",
+                    "address": ["10310 45th Ave NW, Edmonton, AB T6H 5K3"],
+                    "filters": {
+                        "time": ["lunch", "dinner"],
+                        "area": ["South"],
+                        "price": ["$$$"],
+                        "vibe": ["trendy", "cozy"]
+                    }
+                    },        
+                    {
+                    "name": "Buco Pizzeria + Vino Bar",
+                    "description": "You know it, you love it. Buco. Cause why not name a restaraunt 'Hole'",
+                    "address": ["130 Bellerose Dr #105, St. Albert, AB T8N 5C9", "Epcor Tower, 10423 101 St NW, Edmonton, AB T5H 0E9", "1249 Windermere Way SW, Edmonton, AB T6W 2P3"],
+                    "filters": {
+                        "time": ["lunch", "dinner"],
+                        "area": ["South","Downtown","North"],
+                        "price": ["$$$"],
+                        "vibe": ["trendy", "cozy"]
+                    }
+                    },          
+                    {
+                    "name": "Bar Bricco",
+                    "description": "An italian wine bar. We offer small plates, handmade pastas and an exclusively Italian wine list",
+                    "address": ["10347 Jasper Ave, Edmonton, AB T5J 1Y7"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$$"],
+                        "vibe": ["romantic", "upscale"]
+                    }
+                    },
+                    {
+                    "name": "Little Wolf",
+                    "description": "We like making fun, creative, and delicious cuisine to share with you and friends.",
+                    "address": ["8424 109 St NW, Edmonton, AB T6G 1E2"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["Whyte Ave"],
+                        "price": ["$$$"],
+                        "vibe": ["trendy", "cozy"]
+                    }
+                    },
+                    {
+                    "name": "Partake",
+                    "description": "Combining hearty, rustic French cuisine with a cozy & welcoming neighbourhood atmosphere, Partake is a place to revisit old friends and meet new ones.",
+                    "address": ["12431 102 Ave NW, Edmonton, AB T5N 0M2"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$$"],
+                        "vibe": ["romantic", "cozy"]
+                    }
+                    },
+                    {
+                    "name": "Bernadette's",
+                    "description": "Indigenous plates. Natural Wines. Inspired Cocktails. Kokhum’s Hospitality.",
+                    "address": ["10114 104 Street NW, Edmonton, AB T5J 1A7"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$$"],
+                        "vibe": ["romantic", "trendy", "upscale"]
+                    }
+                    },
+                    {
+                    "name": "Olia",
+                    "description": "Olia is a warm and inviting Italian restaurant, brought to life by Chef Daniel Costa, Allen Anderl, and our dedicated team. We offer a simple, seasonal menu inspired by the rich culinary traditions of Italy.",
+                    "address": ["12016 Jasper Ave, Edmonton, AB T5K 0M5"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$$"],
+                        "vibe": ["trendy", "upscale"]
+                    }
+                    },
+                    {
+                    "name": "MSSM",
+                    "description": "You know it, you love it. MSSM is a special place for us for a reason.",
+                    "address": ["10111 104 Ave NW #118, Edmonton, AB T5J 0K9"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$$$"],
+                        "vibe": ["trendy", "cozy"]
+                    }
+                    },
+                    {
+                    "name": "Menya Mori",
+                    "description": "At Menya Mori, our goal is not just to serve good ramen - we want to create a community of people who love ramen.",
+                    "address": ["10350 124 St, Edmonton, AB T5N 1R2"],
+                    "filters": {
+                        "time": ["dinner", "lunch"],
+                        "area": ["Downtown"],
+                        "price": ["$$"],
+                        "vibe": ["trendy", "casual"]
+                    }
+                    },
+                    {
+                    "name": "Kohsaar Grill",
+                    "description": "Welcome to KohSaar Grill, where the vibrant flavors of Pakistani cuisine come to life!",
+                    "address": ["3535 Gateway Blvd NW, Edmonton, AB T6E 6C8"],
+                    "filters": {
+                        "time": ["dinner", "lunch"],
+                        "area": ["South"],
+                        "price": ["$$$"],
+                        "vibe": ["casual"]
+                    }
+                    },
+                    {
+                    "name": "Rosewood Foods",
+                    "description": "Baked goods, breakfast & lunch plus coffee, beer + natural wine⚡️",
+                    "address": ["10150 100 St NW #101, Edmonton, AB T5J 0P6"],
+                    "filters": {
+                        "time": ["brunch", "lunch"],
+                        "area": ["Downtown"],
+                        "price": ["$$"],
+                        "vibe": ["casual","trendy", "cozy"]
+                    }
+                    },
+                    {
+                    "name": "Happy & Olive",
+                    "description": "(Highly rated brunch) An all day, everyday affair, this is a collaboration between the people that brought you Red Ox Inn, Canteen and The Wired Cup. Our mission is simple—build a community gathering place and serve tasty food properly prepared from locally sourced ingredients, pour great wine and cocktails, make great coffee and present it with impeccable service. ",
+                    "address": ["9640 142 St NW, Edmonton, AB T5N 4B2"],
+                    "filters": {
+                        "time": ["brunch", "lunch", "dinner"],
+                        "area": ["West"],
+                        "price": ["$$"],
+                        "vibe": ["casual","trendy", "cozy"]
+                    }
+                    },
+                    {
+                    "name": "Pip",
+                    "description": "a BRIGHT, AIRY space in the heart of old strathcona",
+                    "address": ["10335 83 Ave NW, Edmonton, AB T6E 2C6"] ,
+                    "filters": {
+                        "time": ["brunch", "lunch", "dinner"],
+                        "area": ["Whyte Ave"],
+                        "price": ["$$"],
+                        "vibe": ["casual","trendy", "cozy"]
+                    }
+                    },
+                    {
+                    "name": "An Chay",
+                    "description": "A Delightful Vegan/Vegetarian Vietnamese Restaurant",
+                    "address": ["11203 Jasper Ave, Edmonton, AB T5K 0L5"],
+                    "filters": {
+                        "time": ["lunch", "dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$"],
+                        "vibe": ["casual"]
+                    }
+                    },
+                    {
+                    "name": "Padmanadi",
+                    "description": "We're a family-owned, award-winning vegan eatery, proudly serving authentic Indonesian flavours in both Edmonton and Calgary.",
+                    "address": ["10740 101 St NW, Edmonton, AB T5H 2S3", "6925 Gateway Blvd NW #106, Edmonton, AB T6H 2J1"],
+                    "filters": {
+                        "time": ["dinner"],
+                        "area": ["Downtown", "South"],
+                        "price": ["$$"],
+                        "vibe": ["casual"]
+                    }
+                    },
+                    {
+                    "name": "The Moth Cafe",
+                    "description": "Eclectic vegan fare served in bright, breezy confines with hanging plants & exposed-wood beams.",
+                    "address": ["9449 Jasper Ave, Edmonton, AB T5H 3T8"],
+                    "filters": {
+                        "time": ["brunch", "lunch", "dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$"],
+                        "vibe": ["casual", "cozy"],
+                    }
+                    },
+                    {
+                    "name": "DOSC",
+                    "description": "At DOSC, we focus on bringing you the ultimate dining experience. Alongside our A5 Japanese Wagyu, we also source beef from local Alberta farms, some of which are Halal certified. We put an emphasis on sustainability by preferring local vendors for our ingredients. Our culinary team has created a menu perfect for sharing with the family or enjoying an evening out. Come enjoy our love and passion on our plates.",
+                    "address": ["10190 104 Street NW, Edmonton, AB T5J 1A7"],
+                    "filters": {
+                        "time": ["brunch", "dinner"],
+                        "area": ["Downtown"],
+                        "price": ["$$$$"],
+                        "vibe": ["romantic", "upscale"],
+                    }
+                    }
+                    
+                ]
+                },
+                "activity": {
+                "name": "Activity",
+                "filters": {
+                    "time": ["morning", "afternoon", "evening"],
+                    "area": ["Downtown", "Whyte Ave", "North", "South", "West", "At Home"],
+                    "season": ["Summer", "Winter", "Spring", "Fall"]
+                },
+                "options": [
+                    {
+                    "name": "Royal Alberta Museum",
+                    "description": "The Royal Alberta Museum is a museum of human and natural history in Downtown Edmonton, Alberta, Canada, located north of City Hall. The museum is the largest in western Canada with more than 7,600 square metres exhibition space and 38,900 square metres in total.",
+                    "address": ["9810 103a Ave NW, Edmonton, AB T5J 0G2"],
+                    "filters": {
+                        "time": ["afternoon"],
+                        "area": ["Downtown"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "TELUS World of Science",
+                    "description": "Telus World of Science Edmonton is a broad-based science centre in Edmonton, Alberta, Canada, operated by the Edmonton Space & Science Foundation",
+                    "address": ["11211 142 St NW, Edmonton, AB T5M 4A1"],
+                    "filters": {
+                        "time": ["afternoon"],
+                        "area": ["West"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Art Gallery of Alberta",
+                    "description": "Located in the heart of downtown Edmonton, the AGA is a vibrant hub for visual arts, learning, and community connection. For 100 years, the AGA has celebrated creativity and cultural exchange, showcasing the rich tapestry of Alberta’s artistic talent alongside groundbreaking international exhibitions.",
+                    "address": ["2 Sir Winston Churchill Square NW, Edmonton, AB T5J 2C1"],
+                    "filters": {
+                        "time": ["afternoon"],
+                        "area": ["Downtown"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Paint Night",
+                    "description": "Get out your paintbrush and unleash your inner artist! Let's have a fun-filled evening of painting, sipping, and socializing.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon","evening","morning"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Escape Room",
+                    "description": "Get ready for an adventure! Work together to solve puzzles and escape the room before time runs out. There are many escape rooms in Edmonton, each with a unique theme and story.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon","evening"],
+                        "area": ["Downtown", "Whyte Ave", "North", "South", "West"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Mini Golf",
+                    "description": "There are a few mini golf courses in Edmonton, each with a unique theme and atmosphere. There are 2 in WEM and another off Gateway BLVD.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon","evening"],
+                        "area": ["South", "West"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Axe Throwing (Axe Monkeys)",
+                    "description": "Try not to chop a finger off 🤪",
+                    "address": ["13931 156 St NW, Edmonton, AB T5V 0C8"],
+                    "filters": {
+                        "time": ["afternoon","evening"],
+                        "area": ["North"],
+                        "season": ["Summer", "Winter", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Manual driving lessons",
+                    "description": "Take the ol' country Jetta out for a rip ther bud",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","afternoon","evening"],
+                        "area": ["Downtown", "Whyte Ave", "North", "South", "West"],
+                        "season": ["Summer", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Climbing gym",
+                    "description": "Try your luck at being spiderman. Maybe give Tom a shout and invite him to join.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon","evening"],
+                        "area": ["Downtown", "South", "West"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "124st Art Gallery Walk",
+                    "description": "Pretend we have art money and walk around the 124st art gallery walk. Maybe stop for a coffee at one of the shops nearby.",
+                    "address": [],
+                    "filters": {
+                        "time": ["afternoon"],
+                        "area": ["Downtown"],
+                        "season": ["Summer", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Speeders",
+                    "description": "Do your best not to be the slowest lil frog in a kart for once.",
+                    "address": ["12808 170 St NW Unit 16, Edmonton, AB T5V 0A6"],
+                    "filters": {
+                        "time": ["afternoon", "evening"],
+                        "area": ["North"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Activate!",
+                    "description": "Run around and dodge lasers and shit",
+                    "address": ["160 Mayfield Common Northwest Unit G010, Edmonton, AB T5P 4B3"],
+                    "filters": {
+                        "time": ["morning", "afternoon", "evening"],
+                        "area": ["South, West"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Dueling Pianos",
+                    "description": "Be classy and enjoy some local talent at the Dueling Pianos. Sing along to your favorite songs and enjoy a night of laughter and music.",
+                    "address": ["8217 104 Street NW"],
+                    "filters": {
+                        "time": ["evening"],
+                        "area": ["Whyte Ave"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Elk Island National Park",
+                    "description": "Check out the bison and Northern Lights at Elk Island National Park. It's a great place for a day trip, hiking, and wildlife viewing.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon", "morning"],
+                        "area": [],
+                        "season": ["Summer", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Elk Island National Park",
+                    "description": "Check out the bison and Northern Lights at Elk Island National Park. It's a great place for a day trip, hiking, and wildlife viewing.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon", "morning"],
+                        "area": [],
+                        "season": ["Summer", "Spring", "Fall"]
+                    }
+                    },
+                    {
+                    "name": "Hot Girl Bread Night",
+                    "description": "Spend an evening baking bread and drinking wine. You can swap bread for brownies or any other baked goodies.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "A DIY tarot night",
+                    "description": "Did you know you can read your own tarot — or host a friend or two to do it together? Though the experts are certainly more skilled at deep interpretation, you don’t need to be a professional reader. After all, tarot isn’t magic; it actually started as a card game, and today serves primarily as a tool for reflection and self-exploration. So if you’ve been wanting to connect with your intuition, set some new intentions or get a fresh perspective, a DIY tarot night could be just the experience you’re after.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "A DIY wine/beer fest together or with friends",
+                    "description": "Everyone brings their favourite wine and or beer and we laugh and have fun together.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "The ultimate de-stressing night",
+                    "description": "Everyone is too stressed. Enjoy a night of relaxation with a bubble bath, face masks, and a good book. You can even add some wine or tea to the mix. Go to https://www.cbc.ca/life/wellness/big-night-in-ultimate-guide-to-destressing-1.7465092 for more ideas.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Board Game Tournament",
+                    "description": "A winner takes all tournament. Maybe spice it up with a fun dare on the line.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Short story club",
+                    "description": "Take turns reading short stories to each other and discussing them. You can even pick a theme for the night.",
+                    "address": [],
+                    "filters": {
+                        "time": ["evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Library or Bookstore Date",
+                    "description": "Spend an afternoon browsing books together, sharing your favorite reads, and maybe even picking out a book for each other. You can also grab a coffee at the bookstore cafe.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["Downtown", "Whyte Ave", "North", "South", "West"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "A preserves night with pals",
+                    "description": "Make pickled eggs idgaf",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "A DIY boudoir photo shoot",
+                    "description": "A fun and sexy way to celebrate your love. You can set up a mini photo shoot at home with some props, candles, and soft lighting. Dress up in your favorite outfits or go for a more intimate look.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Butt painting",
+                    "description": "Get that booty all full of paint and go town on a canvas. You can even make it a competition to see who can create the best masterpiece.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Dress up Party",
+                    "description": "Invite all your friends over for a themed dress-up party. You can choose a theme like '80s, '90s, or even a favorite movie or TV show. Everyone can come dressed up, and you can have fun games and activities related to the theme.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Themed Movie Marathon",
+                    "description": "Pick a theme (80s classics, Oscar winners, etc.), make some popcorn, and create your own home theater experience.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    },
+                    {
+                    "name": "Home Mixology Class",
+                    "description": "Pick up a few bottles of liquor or use what you have and create some new exciting cockatils. Maybe even try your hand at making some original creations.",
+                    "address": [],
+                    "filters": {
+                        "time": ["morning","evening", "afternoon"],
+                        "area": ["At Home"],
+                        "season": ["Summer", "Spring", "Fall", "Winter"]
+                    }
+                    }
+                ]
+                },
+                "drinks": {
+                "name": "Drinks",
+                "filters": {
+                    "time": ["morning", "afternoon", "evening", "late-night"],
+                    "area": ["Downtown", "Whyte Ave", "South", "North"],
+                    "type": ["cocktails", "wine", "beer", "coffee"],
+                    "vibe": ["romantic", "lively", "speakeasy", "sports bar", "brewery"],
+                    "patio": ["yes", "no"]
+                },
+                "options": [
+                    {
+                    "name": "Campio",
+                    "description": 'Campio Brewing Co. offers an excellent pre-game or concert dining spot with "amazing food and beer." Guests love the "best pizza in YEG" and "friendly, attentive service." The atmosphere is lively and welcoming, making it a "go-to spot" for both locals and visitors. Reservations recommended for busy nights.',
+                    "address": ["10257 105 St NW, Edmonton, AB T5J 1E3", "10257 105 St NW, Edmonton, AB T5J 1E3"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["cocktails", "beer"],
+                        "vibe": ["lively", "brewery"],
+                        "patio": ["yes"]
+                    }
+                    },
+                    {
+                    "name": "Odd Company Brewing",
+                    "description": "Exceptional burgers, with great beer to boot. Whyte location has a great patio",
+                    "address": ["12021 102 Ave NW #105, Edmonton, AB T5K 0R8", "9959 76 Ave NW, Edmonton, AB T6E 1K8"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown", "Whyte Ave"],
+                        "type": ["beer"],
+                        "vibe": ["brewery"],
+                        "patio": ["yes"]
+                    }
+                    },
+                    {
+                    "name": "Ale Architect",
+                    "description": "Ale Architect brewery and taproom exist in a space where creativity, design, and engineering overlap. A dynamic place for sharing food, drink, conversation, and ideas fuelled by good vibes and positive jams.",
+                    "address": ["9918 76 Ave NW, Edmonton, AB T6E 1K7"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Whyte Ave"],
+                        "type": ["beer"],
+                        "vibe": ["brewery", "lively"],
+                        "patio": ["yes"]
+                    }
+                    },
+                    {
+                    "name": "Clementine",
+                    "description": "Ale Architect brewery and taproom exist in a space where creativity, design, and engineering overlap. A dynamic place for sharing food, drink, conversation, and ideas fuelled by good vibes and positive jams.",
+                    "address": ["11957 Jasper Ave, Edmonton, AB T5K 0P1"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["beer", "cocktails"],
+                        "vibe": ["speakeasy"],
+                        "patio": ["no"]
+                    }
+                    },
+                    {
+                    "name": "Honi Honi Tiki Lounge",
+                    "description": "Honi Honi Tiki Lounge is a tropical escape serving island-inspired cocktails in a vibrant, bamboo-clad paradise.",
+                    "address": ["10262 103 St NW, Edmonton, AB T5J 0Y8"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["cocktails"],
+                        "vibe": [],
+                        "patio": ["no"]
+                    }
+                    },
+                    {
+                    "name": "Baijiu & Little Hong Kong",
+                    "description": "celebrate with expertly crafted cocktails & asian inspired cuisine - best shared amongst loved ones in a welcoming room that pulsates to the rhythm of old school hip-hop.",
+                    "address": ["10359 104 Street NW, Edmonton, AB T5J 1B9"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["cocktails"],
+                        "vibe": ["lively", "speakeasy"],
+                        "patio": ["no"]
+                    }
+                    },
+                    {
+                    "name": "Woodwork",
+                    "description": "The name WOODWORK pays homage to the intersection of our passions for wood-fired cooking and barrel-aged spirits. The Woodwork kitchen is centred around our custom Grillworks wood-fired grill; while our bar features one of Alberta's most extensive collections of spirits, award-winning cocktails, and a curated list of our favourite wines to pair with grilled cuisine.",
+                    "address": ["10132 100 St NW, Edmonton, AB T5J 0N8"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["cocktails", "beer"],
+                        "vibe": ["romantic", "lively"],
+                        "patio": ["no"]
+                    }
+                    },
+                    {
+                    "name": "Fu's Repair Shop",
+                    "description": "Cocktails, Dumplings, Dim Sum, Noodles and More",
+                    "address": ["10524 Jasper Ave, Edmonton, AB T5J 1Z7"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["cocktails"],
+                        "vibe": ["lively"],
+                        "patio": ["no"]
+                    }
+                    },
+                    {
+                    "name": "Bar Bricco",
+                    "description": "An italian wine bar. We offer small plates, handmade pastas and an exclusively Italian wine list",
+                    "address": ["10347 Jasper Ave, Edmonton, AB T5J 1Y7"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["wine"],
+                        "vibe": ["lively", "romantic"],
+                        "patio": ["no"]
+                    }
+                    },
+                    {
+                    "name": "The Red Door",
+                    "description": "At 7 pm on Friday and Saturday nights, the long room transforms into The Red Door Room. Fabulous cake, coffee, libations and vittles.",
+                    "address": ["11811 105 AVE Edmonton, Alberta T5H0L9"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["cocktails"],
+                        "vibe": ["speakeasy", "romantic"],
+                        "patio": ["no"]
+                    }
+                    },
+                    {
+                    "name": "DOSC",
+                    "description": "At DOSC, we focus on bringing you the ultimate dining experience. Alongside our A5 Japanese Wagyu, we also source beef from local Alberta farms, some of which are Halal certified. We put an emphasis on sustainability by preferring local vendors for our ingredients. Our culinary team has created a menu perfect for sharing with the family or enjoying an evening out. Come enjoy our love and passion on our plates.",
+                    "address": ["10190 104 Street NW, Edmonton, AB T5J 1A7"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["cocktails"],
+                        "vibe": ["romantic"],
+                        "patio": ["no"]
+                    }
+                    },
+                    {
+                    "name": "Confederation Lounge",
+                    "description": "Delivering the extraordinary since 1915. Located at Fairmont Hotel Macdonald.",
+                    "address": ["10065 100 St NW, Edmonton, AB T5J 0N6"],
+                    "filters": {
+                        "time": ["evening", "late-night"],
+                        "area": ["Downtown"],
+                        "type": ["cocktails", "beer"],
+                        "vibe": ["romantic"],
+                        "patio": ["no"]
+                    }
+                    }
+                ]
+                }
+            }
+        };
+
+        // DOM elements
+        const categoriesContainer = document.getElementById('categories');
+        const filterContainer = document.getElementById('filter-container');
+        const generateBtn = document.getElementById('generate-btn');
+        const resultsContainer = document.getElementById('results');
+
+        // State
+        let selectedCategories = [];
+        let selectedFilters = {};
+
+        // Initialize the app
+        function init() {
+            renderCategorySelectors();
+            generateBtn.addEventListener('click', generateDatePlan);
+        }
+
+        // Render category selection checkboxes
+        function renderCategorySelectors() {
+            categoriesContainer.innerHTML = '';
+            
+            for (const [key, category] of Object.entries(dateData.categories)) {
+                const div = document.createElement('div');
+                div.className = 'filter-option';
+                div.textContent = category.name;
+                div.dataset.category = key;
+                
+                div.addEventListener('click', () => {
+                    div.classList.toggle('selected');
+                    
+                    if (div.classList.contains('selected')) {
+                        selectedCategories.push(key);
+                        renderFilters();
+                    } else {
+                        selectedCategories = selectedCategories.filter(cat => cat !== key);
+                        renderFilters();
+                    }
+                });
+                
+                categoriesContainer.appendChild(div);
+            }
+        }
+
+        // Render filters based on selected categories
+        function renderFilters() {
+            filterContainer.innerHTML = '';
+            selectedFilters = {};
+            
+            if (selectedCategories.length === 0) return;
+            
+            // Collect all unique filters from selected categories
+            const allFilters = {};
+            
+            selectedCategories.forEach(catKey => {
+                const category = dateData.categories[catKey];
+                
+                for (const [filterKey, filterOptions] of Object.entries(category.filters)) {
+                    if (!allFilters[filterKey]) {
+                        allFilters[filterKey] = new Set();
+                    }
+                    
+                    filterOptions.forEach(option => allFilters[filterKey].add(option));
+                }
+            });
+            
+            // Render each filter group
+            for (const [filterKey, filterOptions] of Object.entries(allFilters)) {
+                const filterGroup = document.createElement('div');
+                filterGroup.className = 'filter-group';
+                
+                const title = document.createElement('h3');
+                title.textContent = filterKey.charAt(0).toUpperCase() + filterKey.slice(1);
+                filterGroup.appendChild(title);
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'filter-options';
+                
+                Array.from(filterOptions).forEach(option => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'filter-option';
+                    optionEl.textContent = option;
+                    optionEl.dataset.filterKey = filterKey;
+                    optionEl.dataset.option = option;
+                    
+                    optionEl.addEventListener('click', () => {
+                        optionEl.classList.toggle('selected');
+                        
+                        if (!selectedFilters[filterKey]) {
+                            selectedFilters[filterKey] = new Set();
+                        }
+                        
+                        if (optionEl.classList.contains('selected')) {
+                            selectedFilters[filterKey].add(option);
+                        } else {
+                            selectedFilters[filterKey].delete(option);
+                            
+                            if (selectedFilters[filterKey].size === 0) {
+                                delete selectedFilters[filterKey];
+                            }
+                        }
+                    });
+                    
+                    optionsContainer.appendChild(optionEl);
+                });
+                
+                filterGroup.appendChild(optionsContainer);
+                filterContainer.appendChild(filterGroup);
+            }
+        }
+
+        // Generate a date plan based on selections
+        function generateDatePlan() {
+            resultsContainer.style.display = 'none';
+            resultsContainer.innerHTML = '';
+            
+            if (selectedCategories.length === 0) {
+                alert('Please select at least one category');
+                return;
+            }
+            
+            const results = [];
+            
+            selectedCategories.forEach(catKey => {
+                const category = dateData.categories[catKey];
+                let eligibleOptions = [...category.options];
+                
+                // Apply filters
+                for (const [filterKey, selectedOptions] of Object.entries(selectedFilters)) {
+                    eligibleOptions = eligibleOptions.filter(option => {
+                        // If the option doesn't have this filter, skip it
+                        if (!option.filters[filterKey]) return true;
+                        
+                        // Check if any of the selected options match the option's filters
+                        return Array.from(selectedOptions).some(selectedOption => 
+                            option.filters[filterKey].includes(selectedOption)
+                        );
+                    });
+                }
+                
+                if (eligibleOptions.length > 0) {
+                    // Randomly select one
+                    const selectedOption = eligibleOptions[Math.floor(Math.random() * eligibleOptions.length)];
+                    if (selectedOption.address) {
+                        selectedOption.address = Array.isArray(selectedOption.address) ? selectedOption.address : [selectedOption.address];
+                    } else {
+                        selectedOption.address = [];
+                    }
+                    results.push({
+                        category: category.name,
+                        name: selectedOption.name,
+                        description: selectedOption.description,
+                        address: selectedOption.address,
+                        filters: selectedOption.filters || {}
+                    });
+                }
+            });
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p>No options match your filters. Try being less specific!</p>';
+            } else {
+                results.forEach(result => {
+                    const resultEl = document.createElement('div');
+                    resultEl.className = 'result-item';
+                    
+                    const categoryEl = document.createElement('div');
+                    categoryEl.className = 'result-category';
+                    categoryEl.textContent = result.category;
+                    
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'result-name';
+                    nameEl.textContent = result.name;
+                    
+                    const descEl = document.createElement('div');
+                    descEl.className = 'result-description';
+                    descEl.textContent = result.description;
+                        
+                    // Create a container for the filters
+                    const filtersContainer = document.createElement('div');
+                    filtersContainer.className = 'result-filters';
+
+                    const filtersTitle = document.createElement('div');
+                    filtersTitle.className = 'filters-title';
+                    filtersTitle.textContent = 'Features:';
+                    filtersContainer.appendChild(filtersTitle);
+
+                    // Create filter tags for each filter type
+                    for (const [filterKey, filterValues] of Object.entries(result.filters)) {
+                        filterValues.forEach(value => {
+                            const filterTag = document.createElement('span');
+                            filterTag.className = 'filter-tag';
+                            
+                            // Add a class based on the filter type for styling
+                            filterTag.classList.add(`filter-${filterKey}`);
+                            
+                            // Capitalize the first letter of the filter value
+                            const formattedValue = value.charAt(0).toUpperCase() + value.slice(1);
+                            filterTag.textContent = formattedValue;
+                            
+                            filtersContainer.appendChild(filterTag);
+                        });
+                    }
+
+                    resultEl.appendChild(categoryEl);
+                    resultEl.appendChild(nameEl);
+                    resultEl.appendChild(descEl);
+                    resultEl.appendChild(filtersContainer);
+
+                    if (result.address) {
+                        for (const address of result.address) {
+                            const addressEl = document.createElement('div');
+                            addressEl.className = 'result-address';
+                            addressEl.textContent = address;
+                            resultEl.appendChild(addressEl);
+                        }
+                    }
+                    
+                    resultsContainer.appendChild(resultEl);
+                });
+            }
+            
+            resultsContainer.style.display = 'block';
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
