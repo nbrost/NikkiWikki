@@ -4,71 +4,836 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nicolan's Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://nikkiwikkiwigglebum.com/css/style.css">
+    <style>
+        /* ── Page-level overrides ── */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1810;
+            background-image: none;
+            color: #dff0d5;
+        }
+
+        .footer {
+            background-color: #060e08;
+            color: #5a8462;
+            border-top: 1px solid rgba(80, 140, 90, 0.12);
+            z-index: 1;
+        }
+
+        .footer a { color: #7ab882; }
+        .footer a:hover { color: #a8d8aa; }
+
+        #floating-button {
+            background: #1a2e1c;
+            border: 1px solid rgba(90, 160, 100, 0.25);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            color: #c0e8b8;
+            border-radius: 10px;
+            transition: background 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #floating-button:hover {
+            background: #223d25;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+        }
+
+        /* ── Layout ── */
+        .journey-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 1.5rem 4rem;
+        }
+
+        /* ── Hero ── */
+        .journey-hero {
+            margin: 0 auto 2.75rem;
+            padding: 2.5rem 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            border: 1px solid rgba(100, 190, 115, 0.12);
+            box-shadow:
+                0 1px 0 rgba(255,255,255,0.04) inset,
+                0 24px 60px rgba(0,0,0,0.4),
+                0 0 0 1px rgba(0,0,0,0.2);
+            text-align: center;
+            backdrop-filter: blur(12px);
+        }
+
+        .journey-title {
+            margin: 0;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(2rem, 4.5vw, 3.2rem);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: #ecfae0;
+            line-height: 1.15;
+        }
+
+        .journey-subtitle {
+            margin: 1rem auto 0;
+            max-width: 660px;
+            color: #7aab82;
+            line-height: 1.7;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        /* ── View toggle ── */
+        .view-controls {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin: 0 auto 2.75rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(100, 180, 110, 0.14);
+            border-radius: 999px;
+            padding: 4px;
+            width: fit-content;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+
+        .view-button {
+            border: 0;
+            border-radius: 999px;
+            padding: 0.55rem 1.4rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            background: transparent;
+            color: #7aaa82;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .view-button[aria-pressed="true"] {
+            background: #2a5e32;
+            color: #c8f0b8;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+        }
+
+        .view-button:hover:not([aria-pressed="true"]) {
+            background: rgba(100, 180, 110, 0.1);
+            color: #a8d8aa;
+        }
+
+        .view-button:focus-visible {
+            outline: 2px solid #4a9456;
+            outline-offset: 2px;
+        }
+
+        /* ── Board ── */
+        .journey-board {
+            position: relative;
+            display: grid;
+            gap: 2.5rem;
+            padding: 0.5rem 0.25rem;
+        }
+
+        .journey-board.view-timeline::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            transform: translateX(-50%);
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(80, 180, 100, 0.3) 6%,
+                rgba(80, 180, 100, 0.3) 94%,
+                transparent
+            );
+            border-radius: 999px;
+            pointer-events: none;
+        }
+
+        /* ── Cards ── */
+        .journey-card {
+            position: relative;
+            border: 0;
+            padding: 0;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+            width: min(500px, 100%);
+            min-height: 380px;
+            margin: 0;
+            transition: transform 0.25s ease, filter 0.25s ease;
+        }
+
+        .journey-card:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.06);
+        }
+
+        .journey-board.view-timeline .journey-card:nth-child(odd) { justify-self: start; }
+        .journey-board.view-timeline .journey-card:nth-child(even) { justify-self: end; }
+
+        .journey-board.view-timeline .journey-card::after {
+            content: "";
+            position: absolute;
+            top: 44px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4cc96e;
+            border: 2px solid #0b1810;
+            box-shadow:
+                0 0 0 3px rgba(76, 201, 110, 0.2),
+                0 0 12px rgba(76, 201, 110, 0.3);
+            z-index: 1;
+        }
+
+        .journey-board.view-timeline .journey-card:nth-child(odd)::after  { right: -30px; }
+        .journey-board.view-timeline .journey-card:nth-child(even)::after { left: -30px; }
+
+        .journey-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 380px;
+            overflow: hidden;
+            border-radius: 18px;
+            box-shadow:
+                0 1px 0 rgba(255,255,255,0.05) inset,
+                0 8px 24px rgba(0,0,0,0.45),
+                0 2px 6px rgba(0,0,0,0.3);
+            border: 1px solid rgba(90, 160, 100, 0.14);
+            background: #141f15;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .journey-card-inner img {
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            object-fit: contain;
+            object-position: center;
+            padding: 0.5rem;
+            background: #1a2a1b;
+        }
+
+        .journey-card-content {
+            padding: 0.85rem 1.1rem;
+            border-top: 1px solid rgba(80, 150, 90, 0.15);
+            background: #111c12;
+        }
+
+        .journey-date {
+            display: inline-flex;
+            align-items: center;
+            margin: 0;
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+            background: rgba(180, 130, 50, 0.12);
+            color: #c8993a;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            border: 1px solid rgba(200, 153, 58, 0.25);
+        }
+
+        .journey-card-content h3 {
+            margin: 0.55rem 0 0;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #e0f5d5;
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        /* ── Grid view ── */
+        .journey-board.view-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.4rem;
+        }
+
+        .journey-board.view-grid::before,
+        .journey-board.view-grid .journey-card::after {
+            display: none;
+        }
+
+        .journey-board.view-grid .journey-card {
+            width: 100%;
+            min-height: 340px;
+            justify-self: stretch;
+        }
+
+        .journey-board.view-grid .journey-card-inner {
+            min-height: 340px;
+        }
+
+        /* ── Gallery modal ── */
+        .gallery-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .gallery-modal[hidden] { display: none; }
+
+        .gallery-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(5, 10, 6, 0.88);
+            backdrop-filter: blur(8px);
+        }
+
+        .gallery-modal-box {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(150deg, #172618 0%, #111d12 100%);
+            border: 1px solid rgba(100, 190, 115, 0.16);
+            border-radius: 20px;
+            box-shadow:
+                0 1px 0 rgba(255,255,255,0.05) inset,
+                0 32px 80px rgba(0,0,0,0.65);
+            max-width: 820px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gallery-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(90, 160, 100, 0.15);
+            flex-shrink: 0;
+        }
+
+        .gallery-modal-header h2 {
+            margin: 0;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #e0f5d5;
+            font-size: 1.35rem;
+            font-weight: 600;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .gallery-close {
+            flex-shrink: 0;
+            background: transparent;
+            border: 1px solid rgba(90, 160, 100, 0.22);
+            border-radius: 8px;
+            color: #7aab82;
+            font-size: 1.25rem;
+            line-height: 1;
+            padding: 0.3rem 0.65rem;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .gallery-close:hover {
+            background: rgba(90, 160, 100, 0.12);
+            color: #c8f0b8;
+        }
+
+        .gallery-modal-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            align-items: start;
+        }
+
+        .gallery-photo-area {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .gallery-main-img-wrap {
+            border-radius: 12px;
+            overflow: hidden;
+            background: #1a2a1b;
+            line-height: 0;
+        }
+
+        .gallery-main-img-wrap img {
+            width: 100%;
+            max-height: 340px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .gallery-thumbs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .gallery-thumb {
+            width: 58px;
+            height: 58px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.15s, opacity 0.15s;
+            opacity: 0.55;
+        }
+
+        .gallery-thumb.is-active,
+        .gallery-thumb:hover {
+            border-color: #4cc96e;
+            opacity: 1;
+        }
+
+        .gallery-story-area {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .gallery-story {
+            margin: 0;
+            color: #a8cca8;
+            line-height: 1.75;
+            font-size: 0.975rem;
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 900px) {
+            .journey-page { padding-top: 5.5rem; }
+
+            .journey-board.view-timeline { padding-left: 1.5rem; }
+
+            .journey-board.view-timeline::before {
+                left: 0.35rem;
+                transform: none;
+            }
+
+            .journey-board.view-timeline .journey-card,
+            .journey-board.view-timeline .journey-card:nth-child(odd),
+            .journey-board.view-timeline .journey-card:nth-child(even) {
+                width: 100%;
+                justify-self: stretch;
+            }
+
+            .journey-board.view-timeline .journey-card::after,
+            .journey-board.view-timeline .journey-card:nth-child(odd)::after,
+            .journey-board.view-timeline .journey-card:nth-child(even)::after {
+                left: -1.3rem;
+                right: auto;
+            }
+
+            .journey-card,
+            .journey-card-inner { min-height: 345px; }
+
+            .journey-card-inner img { padding: 0.4rem; }
+        }
+
+        @media (max-width: 620px) {
+            .gallery-modal { padding: 0.75rem; }
+            .gallery-modal-box { max-height: 95vh; }
+            .gallery-modal-body { grid-template-columns: 1fr; gap: 1rem; }
+            .gallery-story-area { min-height: unset; }
+        }
+    </style>
 </head>
 <body>
     <a href="/" id="floating-button">
         <img src="https://nikkiwikkiwigglebum.com/images/nicole.png" alt="Home">
         Nikki Wikki
-    </a>  
-    <div class="container">
-        <h1>This is the Story of Nicole and Nolan</h1>
+    </a>
+    <main class="journey-page">
+        <header class="journey-hero">
+            <h1 class="journey-title">The Story of Nicole and Nolan</h1>
+            <p class="journey-subtitle">Scroll through each chapter like a timeline, then tap or click any card to open the gallery and read the story behind that moment.</p>
+        </header>
+
+        <div class="view-controls" role="group" aria-label="Card view options">
+            <button class="view-button" type="button" data-view="timeline" aria-pressed="true">Timeline View</button>
+            <button class="view-button" type="button" data-view="grid" aria-pressed="false">Grid View</button>
+        </div>
+
+        <section class="journey-board view-timeline" id="journey-board" aria-label="Our relationship timeline">
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Bumble match"
+                data-title="Matched on Bumble"
+                data-date="Early 2023"
+                data-story='It all started with a Bumble match and one line in her bio that stuck forever: "The only way out is through." We chatted, and somehow I convinced this cutie to meet up in person.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/first_date.png"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/first_date.png" alt="A drawing of Nicole and Nolan meeting for the first time">
+                    <div class="journey-card-content">
+                        <p class="journey-date">Early 2023</p>
+                        <h3>Matched on Bumble</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for first date"
+                data-title="Our First Date"
+                data-date="March 12, 2023"
+                data-story='We met at Remedy for chai. I rolled in disheveled from a beer fest night and she still looked absolutely gorgeous. By the end of it, I was so excited I had to text Fraser right away.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/fraser_text.png"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/fraser_text.png" alt="A screenshot of Nolan texting Fraser after the first date">
+                    <div class="journey-card-content">
+                        <p class="journey-date">March 12, 2023</p>
+                        <h3>Our First Date</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for second date"
+                data-title="Second Date Adventures"
+                data-date="March 2023"
+                data-story='Brussel sprouts at Malt and Mortar, then a used book store where we roasted old romance covers and talked about life. I left knowing I wanted to spend much more time with her.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/second_date.png"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/second_date.png" alt="Nicole and Nolan on their second date at a restaurant">
+                    <div class="journey-card-content">
+                        <p class="journey-date">March 2023</p>
+                        <h3>Second Date Adventures</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for third date"
+                data-title="Third Date N64 Night"
+                data-date="Spring 2023"
+                data-story='Dinner at her place, one cup of Mario Kart (with a dramatic comeback), and Mario Party chaos. Competitive? Yes. Fun? Absolutely.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/third_date.png"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/third_date.png" alt="Nicole and Nolan playing old school video games">
+                    <div class="journey-card-content">
+                        <p class="journey-date">Spring 2023</p>
+                        <h3>Third Date N64 Night</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for clam chowder date"
+                data-title="The Clam Chowder Date"
+                data-date="Spring 2023"
+                data-story='I bragged about my cooking. Then I told her to add around six cans of clams. She trusted me anyway, and together we made a deliciously absurdly clammy soup.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/fourth_date.png"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/fourth_date.png" alt="Nicole and Nolan sharing clam chowder">
+                    <div class="journey-card-content">
+                        <p class="journey-date">Spring 2023</p>
+                        <h3>The Clam Chowder Date</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for NGHTMRE night"
+                data-title="NGHTMRE Night"
+                data-date="April 12, 2023"
+                data-story='A stranger asked if we were a couple and accidentally broke the ice for us. Later that night I asked her to be my girlfriend, and this became our first real photo together.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/a_couple.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/a_couple.jpg" alt="Nicole and Nolan together at NGHTMRE">
+                    <div class="journey-card-content">
+                        <p class="journey-date">April 12, 2023</p>
+                        <h3>NGHTMRE Night</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for K-Days and Ruby Waters"
+                data-title="K-Days and Ruby Waters"
+                data-date="July 24, 2023"
+                data-story='A day of sunshine, carnival rides, and fair food. We ended the night watching Ruby Waters perform, which turned out to be the first of a few times we would see her live.'
+                data-photos='["/images/our_journey/k-days.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/k-days.jpg" alt="K-Days and Ruby Waters">
+                    <div class="journey-card-content">
+                        <p class="journey-date">July 24, 2023</p>
+                        <h3>K-Days and Ruby Waters</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for camping and calzones"
+                data-title="Camping and Calzones"
+                data-date="August 25, 2023"
+                data-story='Weekend adventures with friends, smoky campfire vibes, mushroom painting, wilderness piggy back rides, and of course, calzones, damn delicious calzones.'
+                data-photos='[ "/images/our_journey/hammock_nikki.jpg", "/images/our_journey/nicole_and_coral.jpg","https://nikkiwikkiwigglebum.com/images/our_journey/calzone.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/hammock_nikki.jpg" alt="Camping meal and calzones">
+                    <div class="journey-card-content">
+                        <p class="journey-date">August 25, 2023</p>
+                        <h3>Camping and Calzones</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Mural Fest"
+                data-title="Mural Fest"
+                data-date="September 9, 2023"
+                data-story="One of our first artsy adventures together was exploring the city's mural festival. Afterwards we attended a freaky paint party with friends. There were some questionable pieces of art that night, and afterwards we broke into Buco for some late night pizza."
+                data-photos='["/images/our_journey/mural.jpg", "/images/our_journey/art-party.jpg", "/images/our_journey/buco.jpg" ]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/mural.jpg" alt="Mural Fest">
+                    <div class="journey-card-content">
+                        <p class="journey-date">September 9, 2023</p>
+                        <h3>Mural Fest</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Speeders day"
+                data-title="Speeders Day"
+                data-date="2023"
+                data-story='She was proudly the slowest person on the track and still somehow made it the funniest race day ever. Competitive timing did not matter. Laughing did.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/speeders.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/speeders.jpg" alt="Nicole and Nolan at Speeders go-kart track">
+                    <div class="journey-card-content">
+                        <p class="journey-date">2023</p>
+                        <h3>Speeders Day</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Dark Edmonton"
+                data-title="Dark Edmonton"
+                data-date="October 14, 2023"
+                data-story='I remember this night as the night I got to meet some of Nicole's closest friends. Together we faced haunted houses, drank a few cocktails, and of course jammed out to Phil Collins in the car. A perfect fall night.'
+                data-photos='["/images/our_journey/dark.jpg", "/images/our_journey/dark2.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/dark.jpg" alt="A night out to Little Shop of Horrors at the Citadel">
+                    <div class="journey-card-content">
+                        <p class="journey-date">October 14, 2023</p>
+                        <h3>Dark Edmonton</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for alien night at Scream"
+                data-title="Alien Night at Scream"
+                data-date="Fall 2023"
+                data-story='We dressed as aliens, wandered through chaos with friends, and Nicole somehow managed to lose everything she was handed. Peak couple comedy.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/aliens.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/aliens.jpg" alt="Nicole and Nolan dressed as aliens at Scream">
+                    <div class="journey-card-content">
+                        <p class="journey-date">Fall 2023</p>
+                        <h3>Alien Night at Scream</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Little Shop of Horrors at the Citadel"
+                data-title="Little Shop of Horrors at the Citadel"
+                data-date="November 15, 2023"
+                data-story='Getting dressed up and seeing a live performance has become one of my favourite date night combos. And it all started with this wonderful performance of Little Shop of Horrors at the Citadel. A perfect night with perfect company.'
+                data-photos='["https://nikkiwikkiwigglebum.com/images/our_journey/little_shop.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="https://nikkiwikkiwigglebum.com/images/our_journey/little_shop.jpg" alt="A night out to Little Shop of Horrors at the Citadel">
+                    <div class="journey-card-content">
+                        <p class="journey-date">November 15, 2023</p>
+                        <h3>Little Shop of Horrors at the Citadel</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for No Notes, I just love this picture"
+                data-title="No Notes, I just love this picture"
+                data-date="November 19, 2023"
+                data-story='Truly love it.'
+                data-photos='["/images/our_journey/spinelli.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/spinelli.jpg" alt="No Notes, I just love this picture">
+                    <div class="journey-card-content">
+                        <p class="journey-date">November 19, 2023</p>
+                        <h3>No Notes, I just love this picture</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Mushroom Paint Night"
+                data-title="Mushroom Paint Night"
+                data-date="January 6, 2024"
+                data-story="A night of mushrooms, paint, wine, moist eyes, cold feet, and warm hearts. One of my favourite memories I've made with Nicole and my friends."
+                data-photos='["/images/our_journey/mushroom_paintnight.jpg", "/images/our_journey/mushroom_paintnight2.jpg", "/images/our_journey/cold_feet.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/mushroom_paintnight.jpg" alt="Mushroom Paint Night">
+                    <div class="journey-card-content">
+                        <p class="journey-date">January 6, 2024</p>
+                        <h3>Mushroom Paint Night</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Broken Finger Ski Trip"
+                data-title="Broken Finger Ski Trip"
+                data-date="February 17, 2024"
+                data-story="A weekend ski trip with friends sounds idealistic. Until you factor in a broken finger from dodgeball and trusting a fart just a little too much..."
+                data-photos='["/images/our_journey/perilous_skiing.jpg", "/images/our_journey/noah.jpg", "/images/our_journey/lonnie_hailey.jpg", "/images/our_journey/danni.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/perilous_skiing.jpg" alt="Broken Finger Ski Trip">
+                    <div class="journey-card-content">
+                        <p class="journey-date">February 17, 2024</p>
+                        <h3>Broken Finger Ski Trip</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Family Bruins Game"
+                data-title="Family Bruins Game"
+                data-date="February 21, 2024"
+                data-story="A family outing to a Bruins game. An exciting night with the Bruins winning 605 in OT."
+                data-photos='["/images/our_journey/family_bruins_game.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/family_bruins_game.jpg" alt="Family Bruins Game">
+                    <div class="journey-card-content">
+                        <p class="journey-date">February 21, 2024</p>
+                        <h3>Family Bruins Game</h3>
+                    </div>
+                </div>
+            </button>
+
+            <button class="journey-card" type="button"
+                aria-label="Open gallery for Golden Cabin Trip"
+                data-title="Golden Cabin Trip"
+                data-date="March 20, 2024"
+                data-story="Our first real vacation together. Nicole learned that NY is on the ocean, I learned that Ashton Kutcher has a weird face, and we both learned that we make a great team."
+                data-photos='["/images/our_journey/golden1.jpg", "/images/our_journey/golden2.jpg", "/images/our_journey/golden3.jpg", "/images/our_journey/golden4.jpg", "/images/our_journey/golden5.jpg"]'>
+                <div class="journey-card-inner">
+                    <img src="/images/our_journey/golden1.jpg" alt="Golden Cabin Trip">
+                    <div class="journey-card-content">
+                        <p class="journey-date">March 20, 2024</p>
+                        <h3>Golden Cabin Trip</h3>
+                    </div>
+                </div>
+            </button>
+        </section>
+    </main>
+
+    <div id="gallery-modal" class="gallery-modal" hidden role="dialog" aria-modal="true" aria-labelledby="gallery-modal-title">
+        <div class="gallery-modal-backdrop"></div>
+        <div class="gallery-modal-box">
+            <div class="gallery-modal-header">
+                <p class="journey-date" id="gallery-modal-date"></p>
+                <h2 id="gallery-modal-title"></h2>
+                <button class="gallery-close" aria-label="Close gallery">×</button>
+            </div>
+            <div class="gallery-modal-body">
+                <div class="gallery-photo-area">
+                    <div class="gallery-main-img-wrap">
+                        <img id="gallery-main-img" src="" alt="">
+                    </div>
+                    <div class="gallery-thumbs" id="gallery-thumbs"></div>
+                </div>
+                <div class="gallery-story-area">
+                    <p class="gallery-story" id="gallery-story"></p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="container">
-        <h2>Matching on Bumble</h2>
-        <p>I don't remember a lot about our initial conversations or how I managed to get such a cutie to meet up with me, but one thing I do remember was her quote in her bio "The Only Way Out is Through" and enjoying her explanation of what it meant to her.</p>
-    </div>
-    <div class="container">
-        <h2>Our First Date</h2>
-        <p>March 12th 2023 was our first date. I showed up dischevelled after having spent the night at the beer fest with Noah, Ethan, Fraser, and Kyle. Nicole showed up gorgeous as ever, I remember being suprised by how small and adorable she was, and her curly hair was definitely on point that day. We met at remedy cafe and got to know each other over chai. She showed me some of her tattoos and despite my best efforts she declined my offer to go to a used book sale with me. I had such a great time after I had to tell Fraser about it </p>
-        <img src="https://nikkiwikkiwigglebum.com/images/our_journey/fraser_text.png" alt="texting fraser">
-        <p>Here is an artists rendition of the meeting. </p>
-        <img src="https://nikkiwikkiwigglebum.com/images/our_journey/first_date.png" alt="Nicole and Nolan Meet">
-    </div>
-    <div class="container">
-        <h2>Our Second Date</h2>
-        <p>On our second date we went to Malt and Mortar where we shared brussel sprouts (which were delicious) and I got a Flying Purple Pea Flower Sour Saison. Afterwards we decided to check out a used book store where we made fun of the covers on old romance books, talked about some of societies injustices, and got to know each other some more. I don't remember much more of what we discussed but I remember leaving the date thinking I needed to get to know Nicole more.</p>
-        <img src="https://nikkiwikkiwigglebum.com/images/our_journey/second_date.png" alt="Nicole and Nolan eat brussel sprouts">
-    </div>
-    <div class="container">
-        <h2>Third Date</h2>
-        <p>On our third date Nicole invited me to her house to have dinner and play N64 together. We played a single cup of mario kart 64 (she narowly came back to beat me) and a round of Mario Party (I can't remember which) where I thouroughly kicked her ass.</p>
-        <img src="https://nikkiwikkiwigglebum.com/images/our_journey/third_date.png" alt="Nicole and Nolan play n64">
-    </div>
-    <div class="container">
-        <h2>Our Fourth Date (or Fifth or something idk)</h2>
-        <p>After bragging about how good of a cook I was, I convinced Nicole to come to my place for dinner. Together we were going to make clam chowder. Somewhere along the lines I must have gotten a measurement conversion wrong or something because I told Nicole to open and add about 6 cans of clams. Despite her better judgement, Nicole complied and added the clams and together we ate a delicious, yet very clammy, soup together</p>
-        <img src="https://nikkiwikkiwigglebum.com/images/our_journey/fourth_date.png" alt="Nicole and Nolan eat clam chowder">
-    </div>
-    <div class="container">
-        <h2>NGHTMRE</h2>
-        <p>Exactly one month after meeting Nicole we went to see NGHTMRE at union hall. We spend the day of (or before I can't remember) coming up with a ridiculous outfit for me from Value Village, and a cute one for her. I'll look back fondly on that night for the rest of my life. As we were getting our things ready in our vehicle a woman came up and asked us if we had a lighter, while Nicole rummaged to find hers to share the lady noted we made a cute pair and then asked if we were a couple. I looked over at Nicole and kind of went, I don't know, are we? I wish I could thank her for breaking the ice on that subject, because I'd been thinking it for a little bit. That night after the show while we were winding down for the evening at Nicoles place I asked her what she thought about what the stranger from earlier had asked. I then asked if she would be my girlfriend. While she didn't have an answer for me that night she thought on it and I'm glad she decided to make me her boyfriend. It's also the first pic I have of the two of us.</p>
-        <img src="https://nikkiwikkiwigglebum.com/images/our_journey/a_couple.jpg" alt="NGHTMRE">
-    </div>
-    <div class="container">
-        <h2>And Beyond</h2>
-        <p>From here we started to date officially and have had many wonderful times together. Some of the notable adventures we've had were going to a Ruby Waters concert at K-Days, having Nicole be the slowest person on the track at Speeders, camping and calzones with Fraser and Megan, bean's birthday with Cooper and Coral, late night pizza shenanigans with the Brost Crew, Dark Edmonton with some of Nicoles friends, being aliens at Scream and having Nicole lose everything she was handed there, Little Shop of Horrors at the Citadel, and many, many more memories</p>
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/aliens.jpg" alt="Scream">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/birthday_beans.jpg" alt="birthday">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/bumper_car.jpg" alt="bumper_car">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/calzone.jpg" alt="camping calzone">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/camping.jpg" alt="camping">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/camping2.jpg" alt="camping again">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/dark.jpg" alt="dark Edmonton">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/dark2.jpg" alt="dark Edmonton again">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/dog_park.jpg" alt="dog park">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/drifty.jpg" alt="beers">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/ferris_wheel.jpg" alt="ferris wheel">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/ferris_wheel2.jpg" alt="ferris wheel">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/ferris_wheel3.jpg" alt="ferris wheel">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/little_shop.jpg" alt="little shop of horros">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/mural.jpg" alt="mural fest">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/pizza_night.jpg" alt="pizza night">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/speeders.jpg" alt="speeders">
-            <img src="https://nikkiwikkiwigglebum.com/images/our_journey/spinelli.jpg" alt="ferris wheel">
-    </div>
+
     <div class="footer" id="footer">
         <p>Background image by <a href="https://www.freepik.com/free-vector/watercolor-floral-background_7607060.htm#query=plant%20seamless&position=1&from_view=keyword&track=ais&uuid=fac7edca-c5c3-4180-bfc5-85b81aaaf6e3" target="_blank">pikisuperstar</a> on Freepik</p>
     </div>
+
+    <script>
+        const board = document.getElementById("journey-board");
+        const viewButtons = document.querySelectorAll(".view-button");
+        const cards = document.querySelectorAll(".journey-card");
+        const modal = document.getElementById("gallery-modal");
+        const modalDate = document.getElementById("gallery-modal-date");
+        const modalTitle = document.getElementById("gallery-modal-title");
+        const modalMainImg = document.getElementById("gallery-main-img");
+        const modalThumbs = document.getElementById("gallery-thumbs");
+        const modalStory = document.getElementById("gallery-story");
+        let lastFocused = null;
+
+        function setView(view) {
+            board.classList.remove("view-timeline", "view-grid");
+            board.classList.add(view === "grid" ? "view-grid" : "view-timeline");
+            viewButtons.forEach((button) => {
+                button.setAttribute("aria-pressed", String(button.dataset.view === view));
+            });
+        }
+
+        viewButtons.forEach((button) => {
+            button.addEventListener("click", () => setView(button.dataset.view));
+        });
+
+        function openModal(card) {
+            lastFocused = card;
+            const photos = JSON.parse(card.dataset.photos);
+
+            modalDate.textContent = card.dataset.date;
+            modalTitle.textContent = card.dataset.title;
+            modalStory.textContent = card.dataset.story;
+            modalMainImg.src = photos[0];
+            modalMainImg.alt = card.dataset.title;
+
+            modalThumbs.innerHTML = "";
+            if (photos.length > 1) {
+                photos.forEach((src, i) => {
+                    const img = document.createElement("img");
+                    img.src = src;
+                    img.alt = card.dataset.title + " photo " + (i + 1);
+                    img.className = "gallery-thumb" + (i === 0 ? " is-active" : "");
+                    img.addEventListener("click", () => {
+                        modalMainImg.src = src;
+                        modalThumbs.querySelectorAll(".gallery-thumb").forEach(t => t.classList.remove("is-active"));
+                        img.classList.add("is-active");
+                    });
+                    modalThumbs.appendChild(img);
+                });
+            }
+
+            modal.removeAttribute("hidden");
+            document.body.style.overflow = "hidden";
+            modal.querySelector(".gallery-close").focus();
+        }
+
+        function closeModal() {
+            modal.setAttribute("hidden", "");
+            document.body.style.overflow = "";
+            if (lastFocused) lastFocused.focus();
+        }
+
+        cards.forEach((card) => {
+            card.addEventListener("click", () => openModal(card));
+        });
+
+        document.querySelector(".gallery-close").addEventListener("click", closeModal);
+        document.querySelector(".gallery-modal-backdrop").addEventListener("click", closeModal);
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !modal.hasAttribute("hidden")) closeModal();
+        });
+    </script>
 </body>
 </html>
