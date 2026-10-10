@@ -179,18 +179,35 @@ async function addRecipe(request, env) {
     .first();
   if (existing) return json(await getRecipe(env, existing.id));
 
+  const manualIngredients = splitIngredients(
+    body && (body.ingredients || body.ingredientList)
+  );
+
   let parsed;
-  try {
-    parsed = await parseRecipe(target, env);
-  } catch (err) {
-    return json({ error: err.message }, 502);
+  if (manualIngredients.length) {
+    const providedTags = body && body.tags ? body.tags : [];
+    parsed = {
+      title: clean(body && body.title) || null,
+      image: clean(body && body.image) || null,
+      ingredients: manualIngredients,
+      tags: buildTags({ ingredients: manualIngredients, keywords: providedTags }),
+    };
+  } else {
+    try {
+      parsed = await parseRecipe(target, env);
+    } catch (err) {
+      return json({ error: err.message, manual: true }, 502);
+    }
   }
+
   if (!parsed || !parsed.ingredients.length) {
     return json(
       {
         error:
           "Couldn't find recipe ingredients at that URL. It may not be a recipe page, " +
-          "or the site may be hiding the recipe behind a paywall/bot check.",
+          "or the site may be hiding the recipe behind a paywall/bot check. " +
+          "You can paste the ingredients manually instead.",
+        manual: true,
       },
       422
     );
@@ -280,6 +297,20 @@ function cleanTag(value) {
   return String(value).toLowerCase().replace(/\s+/g, " ").trim().slice(0, 40);
 }
 
+function splitIngredients(value) {
+  if (!value) return [];
+  const raw = Array.isArray(value) ? value : String(value).split(/\r?\n|;/);
+  const out = [];
+  for (let line of raw) {
+    line = String(line).trim().replace(/^[-*\u2022]\s*/, "").trim();
+    if (line) out.push(line.slice(0, 200));
+  }
+  if (out.length === 1 && out[0].includes(",")) {
+    return out[0].split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return out;
+}
+
 async function addTag(request, env, id) {
   const body = await request.json().catch(() => null);
   const tag = cleanTag(body && body.tag);
@@ -353,25 +384,44 @@ async function attachDetails(recipes, env) {
 // ---------------------------------------------------------------------------
 
 async function parseRecipe(target, env) {
-  let html;
-  let res;
+  let html = "";
+  let status = 0;
   try {
-    res = await fetch(target, { headers: FETCH_HEADERS, redirect: "follow" });
-  } catch (err) {
-    throw new Error(`Couldn't reach that URL (${err.message}).`);
+    const res = await fetch(target, { headers: FETCH_HEADERS, redirect: "follow" });
+    status = res.status;
+    if (res.ok) html = await res.text();
+  } catch {
+    status = 0;
   }
-  if (!res.ok) {
-    const hint =
-      res.status === 401 || res.status === 402 || res.status === 403 || res.status === 429
-        ? " — the site is blocking automated access or requires a subscription."
-        : ".";
-    throw new Error(`That site returned HTTP ${res.status}${hint}`);
-  }
-  html = await res.text();
 
-  let data = extractFromJsonLd(html);
-  if (!data) data = await aiParse(html, env);
-  if (!data || !data.ingredients || !data.ingredients.length) return null;
+  let data = html ? extractFromJsonLd(html) : null;
+
+  // If the page blocks normal requests (or renders its recipe with JavaScript),
+  // fall back to a real headless browser. Free plan: 10 browser-minutes/day.
+  if (!data && env.BROWSER) {
+    try {
+      const rendered = await renderHtml(target, env);
+      if (rendered) {
+        html = rendered;
+        data = extractFromJsonLd(rendered);
+      }
+    } catch {
+      // browser unavailable or timed out; keep whatever we have
+    }
+  }
+
+  if (!data && html) data = await aiParse(html, env);
+
+  if (!data || !data.ingredients || !data.ingredients.length) {
+    if (!html && status) {
+      const hint =
+        status === 401 || status === 402 || status === 403 || status === 429
+          ? " — the site is blocking automated access or requires a subscription."
+          : ".";
+      throw new Error(`That site returned HTTP ${status}${hint}`);
+    }
+    return null;
+  }
 
   const tags = buildTags(data);
   return {
@@ -380,6 +430,28 @@ async function parseRecipe(target, env) {
     ingredients: data.ingredients.map((i) => String(i).trim()).filter(Boolean),
     tags,
   };
+}
+
+async function renderHtml(target, env) {
+  const puppeteer = (await import("@cloudflare/puppeteer")).default;
+  let browser;
+  try {
+    browser = await puppeteer.launch(env.BROWSER);
+    const page = await browser.newPage();
+    await page.goto(target, { waitUntil: "domcontentloaded", timeout: 20000 });
+    if (typeof page.waitForNetworkIdle === "function") {
+      await page.waitForNetworkIdle({ idleTime: 1000, timeout: 6000 }).catch(() => {});
+    }
+    return await page.content();
+  } finally {
+    if (browser) {
+      try {
+        await browser.close();
+      } catch {
+        // ignore close errors
+      }
+    }
+  }
 }
 
 function extractFromJsonLd(html) {

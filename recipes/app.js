@@ -17,6 +17,13 @@ const loginBtn = document.getElementById("login-btn");
 const passwordInput = document.getElementById("password-input");
 const lockBtn = document.getElementById("lock-btn");
 const unlockedArea = document.getElementById("unlocked-area");
+const manualForm = document.getElementById("manual-form");
+const manualDetails = document.getElementById("manual-details");
+const manualUrl = document.getElementById("manual-url");
+const manualTitle = document.getElementById("manual-title");
+const manualIngredients = document.getElementById("manual-ingredients");
+const manualTags = document.getElementById("manual-tags");
+const manualBtn = document.getElementById("manual-btn");
 
 let activeTag = "";
 let searchQuery = "";
@@ -35,7 +42,11 @@ async function api(path, options = {}) {
   const res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
   const data = await res.json().catch(() => ({}));
   if (res.status === 401 && path !== "/login") setLocked();
-  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  if (!res.ok) {
+    const error = new Error(data.error || `Request failed (${res.status})`);
+    error.manual = !!data.manual;
+    throw error;
+  }
   return data;
 }
 
@@ -289,8 +300,42 @@ addForm.addEventListener("submit", async (event) => {
     await loadRecipes();
   } catch (err) {
     setStatus(err.message, "error");
+    if (err.manual) {
+      manualDetails.open = true;
+      if (!manualUrl.value) manualUrl.value = url;
+      manualTitle.focus();
+    }
   } finally {
     addBtn.disabled = false;
+  }
+});
+
+manualForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const payload = {
+    url: manualUrl.value.trim(),
+    title: manualTitle.value.trim(),
+    ingredients: manualIngredients.value,
+    tags: manualTags.value.trim(),
+  };
+  if (!payload.url || !payload.ingredients.trim()) return;
+  manualBtn.disabled = true;
+  setStatus("Saving recipe...");
+  try {
+    const recipe = await api("/recipes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    setStatus(`Saved "${recipe.title}".`, "ok");
+    manualForm.reset();
+    manualDetails.open = false;
+    await loadTags();
+    await loadRecipes();
+  } catch (err) {
+    setStatus(err.message, "error");
+  } finally {
+    manualBtn.disabled = false;
   }
 });
 

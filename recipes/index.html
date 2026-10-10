@@ -44,6 +44,15 @@
         .add-tag { display: flex; gap: 6px; margin-top: 4px; }
         .add-tag input { flex: 1; min-width: 0; padding: 4px 8px; border: 1px solid #70a370; border-radius: 12px; font-size: 12px; }
         .add-tag button { padding: 3px 10px; border: 1px solid #70a370; border-radius: 12px; background: #70a370; color: #fff; cursor: pointer; font-size: 12px; }
+        #manual-details { margin-top: 10px; }
+        #manual-details summary { cursor: pointer; color: #2f4d2f; font-weight: bold; }
+        #manual-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+        #manual-form textarea {
+            padding: 10px 12px; border: 2px solid #70a370; border-radius: 10px;
+            font-size: 14px; font-family: inherit; resize: vertical;
+        }
+        #manual-form input { padding: 10px 12px; border: 2px solid #70a370; border-radius: 20px; font-size: 15px; }
+        #manual-form button { align-self: flex-start; padding: 10px 18px; border: 2px solid #70a370; border-radius: 20px; background: #70a370; color: #fff; cursor: pointer; }
         .card .delete { align-self: flex-start; margin-top: auto; background: none; border: none; color: #a12b2b; cursor: pointer; font-size: 12px; padding: 4px 0; }
         .ingredients { font-size: 12px; color: #456; }
         details summary { cursor: pointer; font-size: 12px; color: #2f4d2f; }
@@ -72,6 +81,16 @@
                 <button type="submit" id="add-btn">Save recipe</button>
                 <button type="button" id="lock-btn">Lock</button>
             </form>
+            <details id="manual-details">
+                <summary>Add manually (paste the ingredients)</summary>
+                <form id="manual-form">
+                    <input type="url" id="manual-url" placeholder="https://... (link to the recipe)" required>
+                    <input type="text" id="manual-title" placeholder="Recipe title">
+                    <textarea id="manual-ingredients" rows="6" placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt" required></textarea>
+                    <input type="text" id="manual-tags" placeholder="Extra tags, comma separated (optional)">
+                    <button type="submit" id="manual-btn">Save manually</button>
+                </form>
+            </details>
         </div>
 
         <form id="search-form" class="recipe-tools">

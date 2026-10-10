@@ -1,6 +1,7 @@
 name = "nikkiwikki-recipes"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
 
 # D1 database. Create it with:
 #   npx wrangler d1 create nikkiwikki-recipes
@@ -14,6 +15,11 @@ database_id = "091b3802-0526-4a45-a453-4b7dbcac2b38"
 # structured recipe data).
 [ai]
 binding = "AI"
+
+# Headless browser (Cloudflare Browser Rendering) used to render pages that
+# block normal requests. Free plan includes 10 browser-minutes/day.
+[browser]
+binding = "BROWSER"
 
 # Only used for local dev / preview. Set the real value with:
 #   npx wrangler secret put ALLOWED_ORIGIN
