@@ -73,11 +73,18 @@ function json(data, status = 200) {
 }
 
 function cors(res, allowed, origin) {
-  const allow = allowed === "*" ? "*" : (allowed === origin ? origin : allowed);
-  res.headers.set("Access-Control-Allow-Origin", allow);
+  res.headers.set("Vary", "Origin");
+  const list = String(allowed || "*")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (list.includes("*")) {
+    res.headers.set("Access-Control-Allow-Origin", "*");
+  } else if (origin && list.includes(origin)) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+  }
   res.headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.headers.set("Vary", "Origin");
   return res;
 }
 
