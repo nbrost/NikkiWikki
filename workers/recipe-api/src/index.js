@@ -65,7 +65,18 @@ export default {
       }
       return cors(res, allowed, origin);
     } catch (err) {
-      return cors(json({ error: err.message || "Server error" }, 500), allowed, origin);
+      return cors(
+        json(
+          {
+            error: err.message || "Server error",
+            where: `${request.method} ${pathname}`,
+            cause: err.cause && err.cause.message,
+          },
+          500
+        ),
+        allowed,
+        origin
+      );
     }
   },
 };
@@ -75,6 +86,11 @@ function json(data, status = 200) {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8" },
   });
+}
+
+// D1 cannot bind `undefined`. Coerce it to NULL like SQL (and null strings to NULL).
+function p(v) {
+  return v === undefined || v === null || v === "" ? null : v;
 }
 
 function cors(res, allowed, origin) {
@@ -217,7 +233,7 @@ async function addRecipe(request, env) {
   const { last_row_id } = await env.DB.prepare(
     "INSERT INTO recipes (url, title, image, source) VALUES (?, ?, ?, ?)"
   )
-    .bind(target, parsed.title || target, parsed.image || null, hostname(target))
+    .bind(p(target), p(parsed.title) || target, p(parsed.image), p(hostname(target)))
     .run();
 
   const statements = [];
@@ -227,14 +243,14 @@ async function addRecipe(request, env) {
     statements.push(
       env.DB.prepare("INSERT INTO ingredients (recipe_id, raw, name) VALUES (?, ?, ?)").bind(
         last_row_id,
-        raw,
-        name
+        p(raw),
+        p(name)
       )
     );
   }
   for (const tag of parsed.tags) {
     statements.push(
-      env.DB.prepare("INSERT INTO tags (recipe_id, tag) VALUES (?, ?)").bind(last_row_id, tag)
+      env.DB.prepare("INSERT INTO tags (recipe_id, tag) VALUES (?, ?)").bind(p(last_row_id), p(tag))
     );
   }
   if (statements.length) await env.DB.batch(statements);
@@ -267,7 +283,7 @@ async function listRecipes(request, env) {
     `ORDER BY r.created_at DESC LIMIT ? OFFSET ?`;
   binds.push(limit, offset);
 
-  const { results } = await env.DB.prepare(sql).bind(...binds).all();
+  const { results } = await env.DB.prepare(sql).bind(...binds.map(p)).all();
   return json({ recipes: await attachDetails(results, env) });
 }
 
@@ -353,12 +369,12 @@ async function attachDetails(recipes, env) {
   const placeholders = ids.map(() => "?").join(",");
   const [tagRows, ingRows] = await Promise.all([
     env.DB.prepare(`SELECT recipe_id, tag FROM tags WHERE recipe_id IN (${placeholders})`)
-      .bind(...ids)
+      .bind(...ids.map(p))
       .all(),
     env.DB.prepare(
       `SELECT recipe_id, raw, name FROM ingredients WHERE recipe_id IN (${placeholders})`
     )
-      .bind(...ids)
+      .bind(...ids.map(p))
       .all(),
   ]);
 
