@@ -24,6 +24,10 @@ const manualTitle = document.getElementById("manual-title");
 const manualIngredients = document.getElementById("manual-ingredients");
 const manualTags = document.getElementById("manual-tags");
 const manualBtn = document.getElementById("manual-btn");
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modal-title");
+const modalIngredients = document.getElementById("modal-ingredients");
+const modalLink = document.getElementById("modal-link");
 
 let activeTag = "";
 let searchQuery = "";
@@ -196,19 +200,23 @@ function renderRecipes(recipes) {
     }
 
     if (recipe.ingredients.length) {
-      const details = document.createElement("details");
-      const summary = document.createElement("summary");
-      summary.textContent = `${recipe.ingredients.length} ingredients`;
-      details.appendChild(summary);
-      const ul = document.createElement("ul");
-      ul.className = "ingredients";
-      for (const ing of recipe.ingredients) {
-        const li = document.createElement("li");
-        li.textContent = ing.raw;
-        ul.appendChild(li);
+      const ingRow = document.createElement("div");
+      ingRow.className = "ing-row";
+      ingRow.title = "Click to view all ingredients";
+      for (const name of recipe.ingredients.map((i) => i.name).filter(Boolean).slice(0, 5)) {
+        const chip = document.createElement("span");
+        chip.className = "ing-chip";
+        chip.textContent = name;
+        ingRow.appendChild(chip);
       }
-      details.appendChild(ul);
-      body.appendChild(details);
+      if (recipe.ingredients.length > 5) {
+        const more = document.createElement("span");
+        more.className = "ing-more";
+        more.textContent = `+${recipe.ingredients.length - 5} more`;
+        ingRow.appendChild(more);
+      }
+      ingRow.addEventListener("click", () => openModal(recipe));
+      body.appendChild(ingRow);
     }
 
     if (unlocked) {
@@ -257,6 +265,22 @@ async function removeTag(id, tag) {
   } catch (err) {
     setStatus(err.message, "error");
   }
+}
+
+function openModal(recipe) {
+  modalTitle.textContent = recipe.title || recipe.url;
+  modalIngredients.innerHTML = "";
+  for (const ing of recipe.ingredients) {
+    const li = document.createElement("li");
+    li.textContent = ing.raw;
+    modalIngredients.appendChild(li);
+  }
+  modalLink.href = recipe.url;
+  modal.hidden = false;
+}
+
+function closeModal() {
+  modal.hidden = true;
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -352,6 +376,12 @@ searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
   searchQuery = searchInput.value.trim();
   loadRecipes();
+});
+
+document.getElementById("modal-close").addEventListener("click", closeModal);
+document.getElementById("modal-backdrop").addEventListener("click", closeModal);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeModal();
 });
 
 loadTags();

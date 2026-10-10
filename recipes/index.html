@@ -53,6 +53,22 @@
         }
         #manual-form input { padding: 10px 12px; border: 2px solid #70a370; border-radius: 20px; font-size: 15px; }
         #manual-form button { align-self: flex-start; padding: 10px 18px; border: 2px solid #70a370; border-radius: 20px; background: #70a370; color: #fff; cursor: pointer; }
+        .ing-row { display: flex; flex-wrap: wrap; gap: 5px; cursor: pointer; }
+        .ing-chip { background: #d7e6c6; border: 1px solid #a8c48a; border-radius: 10px; padding: 2px 8px; font-size: 11px; color: #3c5a3c; }
+        .ing-more { font-size: 12px; color: #2f6b2f; font-weight: bold; align-self: center; }
+        .modal[hidden] { display: none; }
+        .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .modal-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); cursor: pointer; }
+        .modal-content {
+            position: relative; max-width: 560px; width: calc(100% - 40px); max-height: 80vh; overflow-y: auto;
+            background: #c2dbad; border-radius: 12px; padding: 24px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+        }
+        .modal-close { position: absolute; top: 10px; right: 12px; border: none; background: none; font-size: 26px; cursor: pointer; color: #2f4d2f; line-height: 1; }
+        .modal-content h2 { margin: 0 32px 12px 0; color: #2f4d2f; }
+        #modal-ingredients { padding-left: 20px; margin-bottom: 16px; color: #333; }
+        #modal-ingredients li { margin: 4px 0; }
+        .modal-link { display: inline-block; padding: 10px 16px; border: 2px solid #70a370; border-radius: 20px; background: #70a370; color: #fff; text-decoration: none; font-weight: bold; }
+        .modal-link:hover { background: #5c8f5c; }
         .card .delete { align-self: flex-start; margin-top: auto; background: none; border: none; color: #a12b2b; cursor: pointer; font-size: 12px; padding: 4px 0; }
         .ingredients { font-size: 12px; color: #456; }
         details summary { cursor: pointer; font-size: 12px; color: #2f4d2f; }
@@ -99,6 +115,16 @@
 
         <div class="tags" id="tag-list"></div>
         <div class="grid" id="recipe-list"></div>
+
+        <div class="modal" id="modal" hidden>
+            <div class="modal-backdrop" id="modal-backdrop"></div>
+            <div class="modal-content">
+                <button type="button" class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+                <h2 id="modal-title"></h2>
+                <ul id="modal-ingredients"></ul>
+                <a id="modal-link" class="modal-link" target="_blank" rel="noopener">View original recipe</a>
+            </div>
+        </div>
     </div>
 
     <div class="footer" id="footer">
