@@ -1,0 +1,252 @@
+// Point this at your deployed Cloudflare Worker, e.g.
+//   const API_BASE = "https://nikkiwikki-recipes.your-subdomain.workers.dev";
+const API_BASE = "https://nikkiwikki-recipes.REPLACE-ME.workers.dev";
+
+const TOKEN_KEY = "recipeBoxToken";
+
+const statusEl = document.getElementById("status");
+const listEl = document.getElementById("recipe-list");
+const tagListEl = document.getElementById("tag-list");
+const addForm = document.getElementById("add-form");
+const addBtn = document.getElementById("add-btn");
+const urlInput = document.getElementById("recipe-url");
+const searchForm = document.getElementById("search-form");
+const searchInput = document.getElementById("search-input");
+const loginForm = document.getElementById("login-form");
+const loginBtn = document.getElementById("login-btn");
+const passwordInput = document.getElementById("password-input");
+const lockBtn = document.getElementById("lock-btn");
+const unlockedArea = document.getElementById("unlocked-area");
+
+let activeTag = "";
+let searchQuery = "";
+let token = localStorage.getItem(TOKEN_KEY) || "";
+let unlocked = false;
+let lastRecipes = [];
+
+function setStatus(message, kind) {
+  statusEl.textContent = message || "";
+  statusEl.className = "status" + (kind ? " " + kind : "");
+}
+
+async function api(path, options = {}) {
+  const headers = Object.assign({}, options.headers);
+  if (token) headers["Authorization"] = "Bearer " + token;
+  const res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== "/login") setLocked();
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+function setUnlocked() {
+  unlocked = true;
+  loginForm.hidden = true;
+  unlockedArea.hidden = false;
+  renderRecipes(lastRecipes);
+}
+
+function setLocked() {
+  unlocked = false;
+  token = "";
+  localStorage.removeItem(TOKEN_KEY);
+  loginForm.hidden = false;
+  unlockedArea.hidden = true;
+  renderRecipes(lastRecipes);
+}
+
+async function checkAuth() {
+  try {
+    await api("/auth");
+    setUnlocked();
+  } catch {
+    setLocked();
+  }
+}
+
+async function loadTags() {
+  try {
+    const { tags } = await api("/tags");
+    tagListEl.innerHTML = "";
+    const all = document.createElement("span");
+    all.className = "tag-chip" + (activeTag ? "" : " active");
+    all.textContent = "all";
+    all.addEventListener("click", () => selectTag(""));
+    tagListEl.appendChild(all);
+    for (const { tag, count } of tags) {
+      const chip = document.createElement("span");
+      chip.className = "tag-chip" + (tag === activeTag ? " active" : "");
+      chip.textContent = `${tag} (${count})`;
+      chip.addEventListener("click", () => selectTag(tag));
+      tagListEl.appendChild(chip);
+    }
+  } catch (err) {
+    setStatus(err.message, "error");
+  }
+}
+
+function selectTag(tag) {
+  activeTag = activeTag === tag ? "" : tag;
+  loadTags();
+  loadRecipes();
+}
+
+async function loadRecipes() {
+  const params = new URLSearchParams();
+  if (activeTag) params.set("tag", activeTag);
+  if (searchQuery) params.set("q", searchQuery);
+  const qs = params.toString();
+  try {
+    const { recipes } = await api("/recipes" + (qs ? "?" + qs : ""));
+    lastRecipes = recipes;
+    renderRecipes(recipes);
+  } catch (err) {
+    setStatus(err.message, "error");
+  }
+}
+
+function renderRecipes(recipes) {
+  listEl.innerHTML = "";
+  if (!recipes.length) {
+    listEl.innerHTML = "<p>No recipes saved yet. Add one above!</p>";
+    return;
+  }
+  for (const recipe of recipes) {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    if (recipe.image) {
+      const img = document.createElement("img");
+      img.src = recipe.image;
+      img.alt = "";
+      img.loading = "lazy";
+      img.addEventListener("error", () => img.remove());
+      card.appendChild(img);
+    }
+
+    const body = document.createElement("div");
+    body.className = "body";
+
+    const title = document.createElement("a");
+    title.className = "title";
+    title.href = recipe.url;
+    title.target = "_blank";
+    title.rel = "noopener";
+    title.textContent = recipe.title || recipe.url;
+    body.appendChild(title);
+
+    const source = document.createElement("span");
+    source.className = "source";
+    source.textContent = recipe.source || "";
+    body.appendChild(source);
+
+    const tags = document.createElement("div");
+    tags.className = "card-tags";
+    for (const tag of recipe.tags.slice(0, 8)) {
+      const t = document.createElement("span");
+      t.textContent = tag;
+      tags.appendChild(t);
+    }
+    body.appendChild(tags);
+
+    if (recipe.ingredients.length) {
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = `${recipe.ingredients.length} ingredients`;
+      details.appendChild(summary);
+      const ul = document.createElement("ul");
+      ul.className = "ingredients";
+      for (const ing of recipe.ingredients) {
+        const li = document.createElement("li");
+        li.textContent = ing.raw;
+        ul.appendChild(li);
+      }
+      details.appendChild(ul);
+      body.appendChild(details);
+    }
+
+    if (unlocked) {
+      const del = document.createElement("button");
+      del.className = "delete";
+      del.textContent = "Delete";
+      del.addEventListener("click", () => removeRecipe(recipe.id));
+      body.appendChild(del);
+    }
+
+    card.appendChild(body);
+    listEl.appendChild(card);
+  }
+}
+
+async function removeRecipe(id) {
+  if (!confirm("Remove this recipe?")) return;
+  try {
+    await api("/recipes/" + id, { method: "DELETE" });
+    await loadTags();
+    await loadRecipes();
+  } catch (err) {
+    setStatus(err.message, "error");
+  }
+}
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const password = passwordInput.value;
+  if (!password) return;
+  loginBtn.disabled = true;
+  setStatus("");
+  try {
+    const data = await api("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    token = data.token || "";
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    passwordInput.value = "";
+    setStatus("Unlocked.", "ok");
+    setUnlocked();
+  } catch (err) {
+    setStatus(err.message, "error");
+  } finally {
+    loginBtn.disabled = false;
+  }
+});
+
+lockBtn.addEventListener("click", () => {
+  setLocked();
+  setStatus("Locked.");
+});
+
+addForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const url = urlInput.value.trim();
+  if (!url) return;
+  addBtn.disabled = true;
+  setStatus("Fetching and tagging recipe... this can take a few seconds.");
+  try {
+    const recipe = await api("/recipes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    setStatus(`Saved "${recipe.title}".`, "ok");
+    urlInput.value = "";
+    await loadTags();
+    await loadRecipes();
+  } catch (err) {
+    setStatus(err.message, "error");
+  } finally {
+    addBtn.disabled = false;
+  }
+});
+
+searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  searchQuery = searchInput.value.trim();
+  loadRecipes();
+});
+
+loadTags();
+loadRecipes();
+checkAuth();

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Box - Nikki Wikki Wiggle Bum</title>
+    <link rel="stylesheet" href="https://nikkiwikkiwigglebum.com/css/style.css">
+    <style>
+        .recipe-tools { margin-bottom: 20px; }
+        .recipe-tools form {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        }
+        .recipe-tools input[type="text"], .recipe-tools input[type="url"], .recipe-tools input[type="password"] {
+            flex: 1 1 320px; padding: 10px 12px; border: 2px solid #70a370;
+            border-radius: 20px; font-size: 15px; background: #fff;
+        }
+        .recipe-tools button {
+            padding: 10px 18px; border: 2px solid #70a370; border-radius: 20px;
+            background: #70a370; color: #fff; font-size: 15px; cursor: pointer;
+        }
+        .recipe-tools button:disabled { opacity: .6; cursor: wait; }
+        .status { margin: 12px 0; min-height: 20px; }
+        .status.error { color: #a12b2b; }
+        .status.ok { color: #2f6b2f; }
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 20px; }
+        .tag-chip {
+            border: 1px solid #70a370; border-radius: 14px; padding: 4px 10px;
+            background: #e3efd8; cursor: pointer; font-size: 13px; color: #333;
+        }
+        .tag-chip.active { background: #70a370; color: #fff; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+        .card { background: #e3efd8; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+        .card img { width: 100%; height: 150px; object-fit: cover; max-width: none; }
+        .card .body { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+        .card a.title { font-weight: bold; color: #2f4d2f; text-decoration: none; }
+        .card a.title:hover { text-decoration: underline; }
+        .card .source { font-size: 12px; color: #557; }
+        .card .card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+        .card .card-tags span { background: #c2dbad; border-radius: 10px; padding: 2px 8px; font-size: 11px; }
+        .card .delete { align-self: flex-start; margin-top: auto; background: none; border: none; color: #a12b2b; cursor: pointer; font-size: 12px; padding: 4px 0; }
+        .ingredients { font-size: 12px; color: #456; }
+        details summary { cursor: pointer; font-size: 12px; color: #2f4d2f; }
+    </style>
+</head>
+<body>
+    <a href="/" id="floating-button">
+        <img src="https://nikkiwikkiwigglebum.com/images/nicole.png" alt="Home">
+        Nikki Wikki
+    </a>
+    <div class="container">
+        <h1>Nicole's Recipe Box</h1>
+        <p>Paste a link to a recipe you found online and we'll save it and tag it by its ingredients.</p>
+
+        <div class="recipe-tools">
+            <form id="login-form">
+                <input type="password" id="password-input" placeholder="Enter the shared password to add recipes" autocomplete="current-password">
+                <button type="submit" id="login-btn">Unlock</button>
+            </form>
+            <p class="status" id="status"></p>
+        </div>
+
+        <div class="recipe-tools" id="unlocked-area" hidden>
+            <form id="add-form">
+                <input type="url" id="recipe-url" placeholder="https://example.com/tasty-recipe" required>
+                <button type="submit" id="add-btn">Save recipe</button>
+                <button type="button" id="lock-btn">Lock</button>
+            </form>
+        </div>
+
+        <form id="search-form" class="recipe-tools">
+            <input type="text" id="search-input" placeholder="Search saved recipes by title...">
+        </form>
+
+        <div class="tags" id="tag-list"></div>
+        <div class="grid" id="recipe-list"></div>
+    </div>
+
+    <div class="footer" id="footer">
+        <p>Background image by <a href="https://www.freepik.com/free-vector/watercolor-floral-background_7607060.htm" target="_blank">pikisuperstar</a> on Freepik</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

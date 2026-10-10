@@ -1,0 +1,28 @@
+name = "nikkiwikki-recipes"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# D1 database. Create it with:
+#   npx wrangler d1 create nikkiwikki-recipes
+# then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "nikkiwikki-recipes"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+
+# Cloudflare Workers AI binding (used only as a fallback when a page has no
+# structured recipe data).
+[ai]
+binding = "AI"
+
+# Only used for local dev / preview. Set the real value with:
+#   npx wrangler secret put ALLOWED_ORIGIN
+# or edit the [vars] block for a public read/write API.
+[vars]
+ALLOWED_ORIGIN = "*"
+
+# Secrets (set these, do NOT commit them):
+#   npx wrangler secret put APP_PASSWORD   # the shared password that unlocks add/delete
+#   npx wrangler secret put TOKEN_SECRET   # random string used to sign login tokens
+# If APP_PASSWORD is unset the gate is disabled (handy for `wrangler dev`).
+# TOKEN_SECRET is optional; it falls back to APP_PASSWORD if omitted.
