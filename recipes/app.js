@@ -36,6 +36,12 @@ function setStatus(message, kind) {
   statusEl.className = "status" + (kind ? " " + kind : "");
 }
 
+function normalizeUrl(value) {
+  let v = String(value || "").trim();
+  if (v && !/^https?:\/\//i.test(v)) v = "https://" + v;
+  return v;
+}
+
 async function api(path, options = {}) {
   const headers = Object.assign({}, options.headers);
   if (token) headers["Authorization"] = "Bearer " + token;
@@ -284,7 +290,7 @@ lockBtn.addEventListener("click", () => {
 
 addForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const url = urlInput.value.trim();
+  const url = normalizeUrl(urlInput.value);
   if (!url) return;
   addBtn.disabled = true;
   setStatus("Fetching and tagging recipe... this can take a few seconds.");
@@ -313,12 +319,15 @@ addForm.addEventListener("submit", async (event) => {
 manualForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const payload = {
-    url: manualUrl.value.trim(),
+    url: normalizeUrl(manualUrl.value),
     title: manualTitle.value.trim(),
     ingredients: manualIngredients.value,
     tags: manualTags.value.trim(),
   };
-  if (!payload.url || !payload.ingredients.trim()) return;
+  if (!payload.url || !payload.ingredients.trim()) {
+    setStatus("Please enter a link and at least one ingredient.", "error");
+    return;
+  }
   manualBtn.disabled = true;
   setStatus("Saving recipe...");
   try {

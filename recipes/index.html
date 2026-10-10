@@ -77,16 +77,16 @@
 
         <div class="recipe-tools" id="unlocked-area" hidden>
             <form id="add-form">
-                <input type="url" id="recipe-url" placeholder="https://example.com/tasty-recipe" required>
+                <input type="text" inputmode="url" id="recipe-url" placeholder="https://example.com/tasty-recipe" required>
                 <button type="submit" id="add-btn">Save recipe</button>
                 <button type="button" id="lock-btn">Lock</button>
             </form>
             <details id="manual-details">
                 <summary>Add manually (paste the ingredients)</summary>
                 <form id="manual-form">
-                    <input type="url" id="manual-url" placeholder="https://... (link to the recipe)" required>
+                    <input type="text" inputmode="url" id="manual-url" placeholder="https://... (link to the recipe)">
                     <input type="text" id="manual-title" placeholder="Recipe title">
-                    <textarea id="manual-ingredients" rows="6" placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt" required></textarea>
+                    <textarea id="manual-ingredients" rows="6" placeholder="One ingredient per line, e.g.&#10;2 cups flour&#10;1 tsp salt"></textarea>
                     <input type="text" id="manual-tags" placeholder="Extra tags, comma separated (optional)">
                     <button type="submit" id="manual-btn">Save manually</button>
                 </form>
