@@ -24,6 +24,7 @@ const NOISE_WORDS = new Set([
   "beaten", "cubed", "shredded", "trimmed", "washed", "room", "temperature", "or",
   "and", "into", "cut", "your", "favorite", "large", "medium", "small", "whole", "each",
   "one", "two", "three", "four", "five", "six", "half", "quarter", "third",
+  "at", "x", "heaping", "torn", "degrees", "separated", "layer", "behind",
 ]);
 
 const MAX_TAGS = 40;
@@ -411,8 +412,7 @@ async function parseRecipe(target, env) {
   }
 
   if (!data && html) data = await aiParse(html, env);
-
-  if (!data || !data.ingredients || !data.ingredients.length) {
+  if (!data) {
     if (!html && status) {
       const hint =
         status === 401 || status === 402 || status === 403 || status === 429
@@ -423,11 +423,23 @@ async function parseRecipe(target, env) {
     return null;
   }
 
-  const tags = buildTags(data);
+  const ingredients = Array.isArray(data.recipeIngredient)
+    ? data.recipeIngredient
+    : Array.isArray(data.ingredients)
+      ? data.ingredients
+      : [];
+  if (!ingredients.length) return null;
+
+  const tags = buildTags({
+    ingredients,
+    keywords: data.keywords,
+    recipeCuisine: data.recipeCuisine,
+    recipeCategory: data.recipeCategory,
+  });
   return {
-    title: clean(data.title) || null,
+    title: clean(data.name) || clean(data.title) || clean(data.headline) || null,
     image: pickImage(data.image),
-    ingredients: data.ingredients.map((i) => String(i).trim()).filter(Boolean),
+    ingredients: ingredients.map((i) => String(i).trim()).filter(Boolean),
     tags,
   };
 }
@@ -535,6 +547,15 @@ function buildTags(data) {
 
 function normalizeIngredient(raw) {
   let s = ` ${String(raw).toLowerCase()} `;
+  s = s
+    .replace(/[àáâäãåā]/g, "a")
+    .replace(/[èéêëē]/g, "e")
+    .replace(/[ìíîïī]/g, "i")
+    .replace(/[òóôöõō]/g, "o")
+    .replace(/[ùúûüū]/g, "u")
+    .replace(/ñ/g, "n")
+    .replace(/ç/g, "c")
+    .replace(/œ/g, "oe");
   s = s.replace(/\([^)]*\)/g, " ");
   s = s.replace(/\b\d+\s*\/\s*\d+\b/g, " ");
   s = s.replace(/[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]/g, " ");
