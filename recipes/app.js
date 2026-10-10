@@ -1,6 +1,6 @@
 // Point this at your deployed Cloudflare Worker, e.g.
 //   const API_BASE = "https://nikkiwikki-recipes.your-subdomain.workers.dev";
-const API_BASE = "https://nikkiwikki-recipes.REPLACE-ME.workers.dev";
+const API_BASE = "https://nikkiwikki-recipes.nbrost.workers.dev";
 
 const TOKEN_KEY = "recipeBoxToken";
 

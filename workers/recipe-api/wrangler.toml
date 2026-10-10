@@ -8,7 +8,7 @@ compatibility_date = "2025-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "nikkiwikki-recipes"
-database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+database_id = "091b3802-0526-4a45-a453-4b7dbcac2b38"
 
 # Cloudflare Workers AI binding (used only as a fallback when a page has no
 # structured recipe data).
@@ -19,7 +19,7 @@ binding = "AI"
 #   npx wrangler secret put ALLOWED_ORIGIN
 # or edit the [vars] block for a public read/write API.
 [vars]
-ALLOWED_ORIGIN = "*"
+ALLOWED_ORIGIN = "https://nikkiwikkiwigglebum.com"
 
 # Secrets (set these, do NOT commit them):
 #   npx wrangler secret put APP_PASSWORD   # the shared password that unlocks add/delete
