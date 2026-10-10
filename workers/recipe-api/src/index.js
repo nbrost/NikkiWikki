@@ -51,6 +51,10 @@ export default {
         res = await listRecipes(request, env);
       } else if (pathname === "/recipes" && request.method === "POST") {
         res = (await requireAuth(request, env)) || (await addRecipe(request, env));
+      } else if (/^\/recipes\/\d+\/tags$/.test(pathname) && request.method === "POST") {
+        res = (await requireAuth(request, env)) || (await addTag(request, env, recipeId(pathname)));
+      } else if (/^\/recipes\/\d+\/tags$/.test(pathname) && request.method === "DELETE") {
+        res = (await requireAuth(request, env)) || (await removeTag(request, env, recipeId(pathname)));
       } else if (pathname.startsWith("/recipes/") && request.method === "DELETE") {
         res = (await requireAuth(request, env)) || (await deleteRecipe(pathname, env));
       } else if (pathname === "/tags" && request.method === "GET") {
@@ -175,10 +179,19 @@ async function addRecipe(request, env) {
     .first();
   if (existing) return json(await getRecipe(env, existing.id));
 
-  const parsed = await parseRecipe(target, env);
+  let parsed;
+  try {
+    parsed = await parseRecipe(target, env);
+  } catch (err) {
+    return json({ error: err.message }, 502);
+  }
   if (!parsed || !parsed.ingredients.length) {
     return json(
-      { error: "Couldn't find recipe ingredients at that URL. It may not be a recipe page." },
+      {
+        error:
+          "Couldn't find recipe ingredients at that URL. It may not be a recipe page, " +
+          "or the site may be hiding the recipe behind a paywall/bot check.",
+      },
       422
     );
   }
@@ -258,6 +271,39 @@ async function deleteRecipe(pathname, env) {
   return json({ ok: true });
 }
 
+function recipeId(pathname) {
+  return Number(pathname.split("/")[2]);
+}
+
+function cleanTag(value) {
+  if (value === null || value === undefined) return "";
+  return String(value).toLowerCase().replace(/\s+/g, " ").trim().slice(0, 40);
+}
+
+async function addTag(request, env, id) {
+  const body = await request.json().catch(() => null);
+  const tag = cleanTag(body && body.tag);
+  if (!tag) return json({ error: "Tag is required." }, 400);
+  const exists = await env.DB.prepare("SELECT 1 FROM tags WHERE recipe_id = ? AND tag = ?")
+    .bind(id, tag)
+    .first();
+  if (!exists) {
+    await env.DB.prepare("INSERT INTO tags (recipe_id, tag) VALUES (?, ?)").bind(id, tag).run();
+  }
+  return json(await getRecipe(env, id));
+}
+
+async function removeTag(request, env, id) {
+  let tag = cleanTag(new URL(request.url).searchParams.get("tag"));
+  if (!tag) {
+    const body = await request.json().catch(() => null);
+    tag = cleanTag(body && body.tag);
+  }
+  if (!tag) return json({ error: "Tag is required." }, 400);
+  await env.DB.prepare("DELETE FROM tags WHERE recipe_id = ? AND tag = ?").bind(id, tag).run();
+  return json(await getRecipe(env, id));
+}
+
 async function getRecipe(env, id) {
   const recipe = await env.DB.prepare(
     "SELECT id, url, title, image, source, created_at FROM recipes WHERE id = ?"
@@ -308,13 +354,20 @@ async function attachDetails(recipes, env) {
 
 async function parseRecipe(target, env) {
   let html;
+  let res;
   try {
-    const res = await fetch(target, { headers: FETCH_HEADERS, redirect: "follow" });
-    if (!res.ok) throw new Error(`site returned ${res.status}`);
-    html = await res.text();
+    res = await fetch(target, { headers: FETCH_HEADERS, redirect: "follow" });
   } catch (err) {
-    throw new Error(`Couldn't load that URL (${err.message}).`);
+    throw new Error(`Couldn't reach that URL (${err.message}).`);
   }
+  if (!res.ok) {
+    const hint =
+      res.status === 401 || res.status === 402 || res.status === 403 || res.status === 429
+        ? " — the site is blocking automated access or requires a subscription."
+        : ".";
+    throw new Error(`That site returned HTTP ${res.status}${hint}`);
+  }
+  html = await res.text();
 
   let data = extractFromJsonLd(html);
   if (!data) data = await aiParse(html, env);

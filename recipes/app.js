@@ -142,12 +142,41 @@ function renderRecipes(recipes) {
 
     const tags = document.createElement("div");
     tags.className = "card-tags";
-    for (const tag of recipe.tags.slice(0, 8)) {
+    for (const tag of recipe.tags) {
       const t = document.createElement("span");
       t.textContent = tag;
+      if (unlocked) {
+        const x = document.createElement("button");
+        x.type = "button";
+        x.className = "tag-remove";
+        x.textContent = "\u00d7";
+        x.title = "Remove tag";
+        x.addEventListener("click", () => removeTag(recipe.id, tag));
+        t.appendChild(x);
+      }
       tags.appendChild(t);
     }
     body.appendChild(tags);
+
+    if (unlocked) {
+      const tagForm = document.createElement("form");
+      tagForm.className = "add-tag";
+      const tagInput = document.createElement("input");
+      tagInput.type = "text";
+      tagInput.placeholder = "add a tag";
+      tagInput.maxLength = 40;
+      const tagBtn = document.createElement("button");
+      tagBtn.type = "submit";
+      tagBtn.textContent = "+";
+      tagForm.appendChild(tagInput);
+      tagForm.appendChild(tagBtn);
+      tagForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const value = tagInput.value.trim();
+        if (value) addTag(recipe.id, value);
+      });
+      body.appendChild(tagForm);
+    }
 
     if (recipe.ingredients.length) {
       const details = document.createElement("details");
@@ -182,6 +211,30 @@ async function removeRecipe(id) {
   if (!confirm("Remove this recipe?")) return;
   try {
     await api("/recipes/" + id, { method: "DELETE" });
+    await loadTags();
+    await loadRecipes();
+  } catch (err) {
+    setStatus(err.message, "error");
+  }
+}
+
+async function addTag(id, tag) {
+  try {
+    await api(`/recipes/${id}/tags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tag }),
+    });
+    await loadTags();
+    await loadRecipes();
+  } catch (err) {
+    setStatus(err.message, "error");
+  }
+}
+
+async function removeTag(id, tag) {
+  try {
+    await api(`/recipes/${id}/tags?tag=${encodeURIComponent(tag)}`, { method: "DELETE" });
     await loadTags();
     await loadRecipes();
   } catch (err) {
