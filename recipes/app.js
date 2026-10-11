@@ -53,7 +53,11 @@ async function api(path, options = {}) {
   const data = await res.json().catch(() => ({}));
   if (res.status === 401 && path !== "/login") setLocked();
   if (!res.ok) {
-    const error = new Error(data.error || `Request failed (${res.status})`);
+    const parts = [];
+    parts.push(data.error || `Request failed (${res.status})`);
+    if (data.where) parts.push("at " + data.where);
+    if (data.cause) parts.push("(" + data.cause + ")");
+    const error = new Error(parts.join(" "));
     error.manual = !!data.manual;
     throw error;
   }
