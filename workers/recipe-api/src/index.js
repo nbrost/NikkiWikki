@@ -230,32 +230,64 @@ async function addRecipe(request, env) {
     );
   }
 
-  const { last_row_id } = await env.DB.prepare(
-    "INSERT INTO recipes (url, title, image, source) VALUES (?, ?, ?, ?)"
-  )
-    .bind(p(target), p(parsed.title) || target, p(parsed.image), p(hostname(target)))
-    .run();
+  let recipe_id;
+  try {
+    const { last_row_id } = await env.DB.prepare(
+      "INSERT INTO recipes (url, title, image, source) VALUES (?, ?, ?, ?)"
+    )
+      .bind(p(target), p(parsed.title) || target, p(parsed.image), p(hostname(target)))
+      .run();
+    recipe_id = Number.isInteger(last_row_id) ? last_row_id : null;
+  } catch (err) {
+    err.message =
+      `recipes insert (target=${JSON.stringify(target)}, title=${JSON.stringify(
+        parsed.title
+      )}, image=${JSON.stringify(parsed.image)}): ${err.message}`;
+    throw err;
+  }
+  if (!recipe_id) {
+    const row = await env.DB.prepare("SELECT id FROM recipes WHERE url = ?").bind(target).first();
+    recipe_id = row && row.id;
+  }
+  if (!recipe_id) {
+    throw new Error(
+      "Recipe was saved, but its id could not be confirmed. Refresh the page to see it; the details may be missing."
+    );
+  }
 
-  const statements = [];
+  const jobs = [];
   for (const raw of parsed.ingredients) {
     const name = normalizeIngredient(raw);
     if (!name) continue;
-    statements.push(
-      env.DB.prepare("INSERT INTO ingredients (recipe_id, raw, name) VALUES (?, ?, ?)").bind(
-        last_row_id,
-        p(raw),
-        p(name)
-      )
-    );
+    jobs.push({ kind: "ingredient", params: [recipe_id, p(raw), p(name)] });
   }
   for (const tag of parsed.tags) {
-    statements.push(
-      env.DB.prepare("INSERT INTO tags (recipe_id, tag) VALUES (?, ?)").bind(p(last_row_id), p(tag))
-    );
+    jobs.push({ kind: "tag", params: [p(recipe_id), p(tag)] });
   }
-  if (statements.length) await env.DB.batch(statements);
+  try {
+    if (jobs.length) {
+      const statements = jobs.map((j) =>
+        j.kind === "ingredient"
+          ? env.DB
+              .prepare("INSERT INTO ingredients (recipe_id, raw, name) VALUES (?, ?, ?)")
+              .bind(...j.params)
+          : env.DB.prepare("INSERT INTO tags (recipe_id, tag) VALUES (?, ?)").bind(...j.params)
+      );
+      await env.DB.batch(statements);
+    }
+  } catch (err) {
+    const dump = jobs
+      .map(
+        (j, k) =>
+          `${k}:${j.kind}` +
+          j.params.map((v) => (v === undefined ? "[UNDEFINED]" : `${typeof v}:${JSON.stringify(v)}`)).join(",")
+      )
+      .join(" | ");
+    err.message = `details batch (${jobs.length} jobs): ${err.message}  [values: ${dump}]`;
+    throw err;
+  }
 
-  return json(await getRecipe(env, last_row_id), 201);
+  return json(await getRecipe(env, recipe_id), 201);
 }
 
 async function listRecipes(request, env) {
