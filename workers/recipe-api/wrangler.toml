@@ -21,6 +21,12 @@ binding = "AI"
 [browser]
 binding = "BROWSER"
 
+# Semantic (vector) search index. Create it with:
+#   npx wrangler vectorize create recipes-index --dimensions=768 --metric=cosine
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "recipes-index"
+
 # Only used for local dev / preview. Set the real value with:
 #   npx wrangler secret put ALLOWED_ORIGIN
 # or edit the [vars] block for a public read/write API.

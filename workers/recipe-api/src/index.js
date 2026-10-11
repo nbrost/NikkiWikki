@@ -29,6 +29,11 @@ const NOISE_WORDS = new Set([
 
 const MAX_TAGS = 40;
 
+// Semantic (vector) search. Embeddings come from Workers AI and are stored in
+// the Vectorize index bound as env.VECTORIZE. Keep dimensions in sync with the
+// model used here (bge-base-en-v1.5 -> 768).
+const EMBED_MODEL = "@cf/baai/bge-base-en-v1.5";
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -60,6 +65,8 @@ export default {
         res = (await requireAuth(request, env)) || (await deleteRecipe(pathname, env));
       } else if (pathname === "/tags" && request.method === "GET") {
         res = await listTags(env);
+      } else if (pathname === "/reindex" && request.method === "POST") {
+        res = (await requireAuth(request, env)) || (await reindex(env));
       } else {
         res = json({ error: "Not found" }, 404);
       }
@@ -287,6 +294,26 @@ async function addRecipe(request, env) {
     throw err;
   }
 
+  if (env.VECTORIZE) {
+    try {
+      const [vec] = await embedTexts([buildEmbedText(parsed, target)], env);
+      if (vec && vec.length) {
+        await env.VECTORIZE.upsert([
+          {
+            id: String(recipe_id),
+            values: vec,
+            metadata: {
+              recipe_id,
+              title: String(parsed.title || target).slice(0, 100),
+            },
+          },
+        ]);
+      }
+    } catch {
+      // vector indexing is best-effort; never fail the save
+    }
+  }
+
   return json(await getRecipe(env, recipe_id), 201);
 }
 
@@ -297,6 +324,63 @@ async function listRecipes(request, env) {
   const limit = Math.min(Number(params.get("limit")) || 60, 200);
   const offset = Math.max(Number(params.get("offset")) || 0, 0);
 
+  const vectorScores = [];
+  if (q && env.VECTORIZE) {
+    try {
+      const [queryVec] = await embedTexts([q], env);
+      if (queryVec && queryVec.length) {
+        const res = await env.VECTORIZE.query(queryVec, { topK: 20, returnMetadata: "all" });
+        for (const m of res.matches || []) {
+          const rid = Number(m.metadata && m.metadata.recipe_id);
+          if (Number.isInteger(rid) && rid > 0) vectorScores.push({ id: rid, score: m.score });
+        }
+      }
+    } catch {
+      // vector search unavailable; fall through to plain keyword matching
+    }
+  }
+  // Scores on short recipe text cluster tightly, so keep only matches close to
+  // the best hit (a fixed threshold would either drop good hits or keep noise).
+  const best = vectorScores.length ? vectorScores[0].score : 0;
+  const minScore = Math.max(0.35, best - 0.07);
+  const vectorIds = vectorScores.filter((s) => s.score >= minScore).map((s) => s.id);
+
+  if (q) {
+    const results = [];
+    if (vectorIds.length) {
+      const rank = new Map(vectorIds.map((id, i) => [id, i]));
+      const ids = vectorIds.join(",");
+      const sql =
+        `SELECT DISTINCT r.id, r.url, r.title, r.image, r.source, r.created_at FROM recipes r ` +
+        (tag ? "JOIN tags t ON t.recipe_id = r.id " : "") +
+        `WHERE r.id IN (${ids})` +
+        (tag ? " AND t.tag = ?" : "") +
+        ` ORDER BY CASE r.id ${vectorIds.map((id) => `WHEN ${id} THEN ${rank.get(id)}`).join(" ")} END ` +
+        `LIMIT ? OFFSET ?`;
+      const binds = tag ? [tag, limit, offset] : [limit, offset];
+      results.push(...(await env.DB.prepare(sql).bind(...binds.map(p)).all()).results);
+    }
+
+    const have = results.map((r) => r.id);
+    const nope = have.length ? `r.id NOT IN (${have.join(",")}) AND ` : "";
+    const kwSql =
+      `SELECT DISTINCT r.id, r.url, r.title, r.image, r.source, r.created_at FROM recipes r ` +
+      (tag ? "JOIN tags t ON t.recipe_id = r.id " : "") +
+      `WHERE ${nope}(r.title LIKE ? OR EXISTS ` +
+      `(SELECT 1 FROM ingredients i WHERE i.recipe_id = r.id AND (i.name LIKE ? OR i.raw LIKE ?)))` +
+      (tag ? " AND t.tag = ?" : "") +
+      ` ORDER BY r.created_at DESC LIMIT ? OFFSET ?`;
+    const kwBinds = tag
+      ? [`%${q}%`, `%${q}%`, `%${q}%`, tag, limit, offset]
+      : [`%${q}%`, `%${q}%`, `%${q}%`, limit, offset];
+    const kwRows = (await env.DB.prepare(kwSql).bind(...kwBinds.map(p)).all()).results;
+    for (const row of kwRows) {
+      if (!have.includes(row.id)) results.push(row);
+    }
+    return json({ recipes: await attachDetails(results, env) });
+  }
+
+  // No search query: tag filter (or everything), newest first.
   const where = [];
   const binds = [];
   let join = "";
@@ -305,18 +389,13 @@ async function listRecipes(request, env) {
     where.push("t.tag = ?");
     binds.push(tag);
   }
-  if (q) {
-    where.push("r.title LIKE ?");
-    binds.push(`%${q}%`);
-  }
   const sql =
     `SELECT DISTINCT r.id, r.url, r.title, r.image, r.source, r.created_at FROM recipes r ` +
     `${join} ${where.length ? "WHERE " + where.join(" AND ") : ""} ` +
     `ORDER BY r.created_at DESC LIMIT ? OFFSET ?`;
   binds.push(limit, offset);
-
-  const { results } = await env.DB.prepare(sql).bind(...binds.map(p)).all();
-  return json({ recipes: await attachDetails(results, env) });
+  const { results: rows } = await env.DB.prepare(sql).bind(...binds.map(p)).all();
+  return json({ recipes: await attachDetails(rows, env) });
 }
 
 async function listTags(env) {
@@ -334,6 +413,13 @@ async function deleteRecipe(pathname, env) {
     env.DB.prepare("DELETE FROM ingredients WHERE recipe_id = ?").bind(id),
     env.DB.prepare("DELETE FROM recipes WHERE id = ?").bind(id),
   ]);
+  if (env.VECTORIZE) {
+    try {
+      await env.VECTORIZE.deleteByIds([String(id)]);
+    } catch {
+      // best-effort cleanup; a stale vector is harmless
+    }
+  }
   return json({ ok: true });
 }
 
@@ -651,6 +737,56 @@ function clean(value) {
   if (value === null || value === undefined) return "";
   if (Array.isArray(value)) value = value[0];
   return String(value).trim();
+}
+
+// ---------------------------------------------------------------------------
+// Semantic (vector) search
+// ---------------------------------------------------------------------------
+
+async function embedTexts(texts, env) {
+  const res = await env.AI.run(EMBED_MODEL, { text: texts });
+  return (res && res.data) || [];
+}
+
+function buildEmbedText(parsed, target) {
+  const title = parsed.title || target;
+  const ingredients = (parsed.ingredients || []).join("\n");
+  const tags = (parsed.tags || []).join(", ");
+  return `title: ${title}\ningredients: ${ingredients}\ntags: ${tags}`;
+}
+
+// Re-embeds existing recipes into the vector index (used after new recipe
+// parses and after any backfill of older recipes).
+async function reindex(env) {
+  if (!env.VECTORIZE) return json({ error: "Vector search is not configured." }, 400);
+  const { results } = await env.DB.prepare(
+    "SELECT r.id, r.title, r.url, i.raw FROM recipes r LEFT JOIN ingredients i ON i.recipe_id = r.id ORDER BY r.id"
+  ).all();
+  const byRecipe = new Map();
+  for (const row of results) {
+    if (!byRecipe.has(row.id)) byRecipe.set(row.id, { title: row.title, url: row.url, ings: [] });
+    if (row.raw) byRecipe.get(row.id).ings.push(row.raw);
+  }
+  if (!byRecipe.size) return json({ ok: true, indexed: 0 });
+
+  const texts = [];
+  const metas = [];
+  for (const [id, r] of byRecipe) {
+    metas.push({ recipe_id: id, title: String(r.title || r.url).slice(0, 100) });
+    texts.push(`title: ${r.title || r.url}\ningredients: ${r.ings.join("\n")}`);
+  }
+  const vectors = [];
+  for (let i = 0; i < texts.length; i += 10) {
+    const res = await embedTexts(texts.slice(i, i + 10), env);
+    (res || []).forEach((vec, k) => {
+      const idx = i + k;
+      if (vec && vec.length) {
+        vectors.push({ id: String(metas[idx].recipe_id), values: vec, metadata: metas[idx] });
+      }
+    });
+  }
+  if (vectors.length) await env.VECTORIZE.upsert(vectors);
+  return json({ ok: true, indexed: vectors.length });
 }
 
 function hostname(url) {
